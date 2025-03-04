@@ -1,0 +1,12 @@
+version: '3'
+
+tasks:
+  lint:
+    desc: Run linters
+    cmds:
+      - ruff check --fix --config=pyproject.toml
+
+  format:
+    desc: Run formatter
+    cmds:
+      - ruff format --config=pyproject.toml
