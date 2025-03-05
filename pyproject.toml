@@ -11,6 +11,7 @@ python = "^3.13"
 aiogram = "^3.18.0"
 redis = "^5.2.1"
 loguru = "^0.7.3"
+plotly = "^6.0.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.9.4"
