@@ -27,12 +27,12 @@ class APIClient:
 
     @classmethod
     async def get_bot_list(cls, user_id: int) -> dict[str, Any]:
-        endpoint = f"/stats/{user_id}"
+        endpoint = f"/api/users/{user_id}"
         return await cls._make_request("GET", endpoint)
 
     @classmethod
     async def get_bot_stats(cls, bot_id: int) -> dict[str, Any]:
-        endpoint = f"/bots/{bot_id}"
+        endpoint = f"/api/bots/{bot_id}"
         return await cls._make_request("GET", endpoint)
 
     # Response examples:
