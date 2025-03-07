@@ -11,6 +11,4 @@ class Settings:
     WEBHOOK_HOST: str = os.getenv("WEBHOOK_HOST")
     WEBHOOK_PATH: str = "/statistics"
     WEBHOOK_URL: str = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
-
-
-settings = Settings()
+    API_TIMEOUT: int = int(os.getenv("API_TIMEOUT"))

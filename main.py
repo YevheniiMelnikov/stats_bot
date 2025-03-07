@@ -4,32 +4,39 @@ from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from aiohttp import web
 
-from router import main_router
-from core.handlers import webapp_handler, get_stats_handler
+from core.api_client import APIClient
+from core.router import main_router
+from core.web_handlers import webapp_handler, get_stats_handler, get_bots_handler
 from core.logger import logger
-from core.settings import settings
+from core.settings import Settings
 
 
 async def start_web_app(app: web.Application) -> web.AppRunner:
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, settings.WEB_SERVER_HOST, settings.WEBHOOK_PORT)
+    site = web.TCPSite(runner, Settings.WEB_SERVER_HOST, Settings.WEBHOOK_PORT)
     await site.start()
     return runner
 
 
+async def set_app_routs(app: web.Application) -> None:
+    app.router.add_route("*", "/webapp", webapp_handler)
+    app.router.add_get("/stats", get_stats_handler)
+    app.router.add_get("/bots", get_bots_handler)
+
+
 async def main():
-    bot = Bot(token=settings.BOT_TOKEN)
+    bot = Bot(token=Settings.BOT_TOKEN)
     await bot.delete_webhook(drop_pending_updates=True)
-    await bot.set_webhook(url=settings.WEBHOOK_URL)
-    dp = Dispatcher(storage=RedisStorage.from_url(settings.REDIS_URL))
+    await bot.set_webhook(url=Settings.WEBHOOK_URL)
+    dp = Dispatcher(storage=RedisStorage.from_url(Settings.REDIS_URL))
     dp.include_router(main_router)
 
     app = web.Application()
     app["bot"] = bot
-    SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path=settings.WEBHOOK_PATH)
-    app.router.add_route("*", "/webapp", webapp_handler)
-    app.router.add_get("/get_stats", get_stats_handler)
+    app["api_client"] = APIClient()
+    SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path=Settings.WEBHOOK_PATH)
+    await set_app_routs(app)
     setup_application(app, dp, bot=bot)
     runner = await start_web_app(app)
 
@@ -37,8 +44,8 @@ async def main():
         stop_event = asyncio.Event()
         logger.info("Bot started")
         await stop_event.wait()
-    except (KeyboardInterrupt, SystemExit):
-        logger.info("Shutting down bot...")
+    except Exception as e:
+        logger.critical(f"Bot start failed: {e}")
     finally:
         await runner.cleanup()
         dp.shutdown()
