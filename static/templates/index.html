@@ -3,19 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self';
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    font-src 'self' https://fonts.gstatic.com;
-    script-src 'self' 'unsafe-inline';" />
   <title>Статистика бота</title>
 
-  <!-- Подключение шрифта -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Euclid+Circular+A:wght@400;500;700&display=swap" rel="stylesheet">
-
+  <!-- Пример: подключение шрифта локально -->
   <style>
+    @font-face {
+      font-family: 'Euclid Circular A';
+      src: url('static/fonts/EuclidCircularA-Regular.woff2') format('woff2'),
+           url('static/fonts/EuclidCircularA-Regular.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Euclid Circular A';
+      src: url('static/fonts/EuclidCircularA-Medium.woff2') format('woff2'),
+           url('static/fonts/EuclidCircularA-Medium.woff') format('woff');
+      font-weight: 500;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Euclid Circular A';
+      src: url('static/fonts/EuclidCircularA-Bold.woff2') format('woff2'),
+           url('static/fonts/EuclidCircularA-Bold.woff') format('woff');
+      font-weight: 700;
+      font-style: normal;
+    }
+
     :root {
       font-family: 'Euclid Circular A', Arial, sans-serif;
     }
@@ -36,16 +49,16 @@
       color: #eaeaea;
       font-size: 14px;
       line-height: 1.5;
-      font-family: 'Euclid Circular A', Arial, sans-serif;
     }
 
     .container {
       max-width: 900px;
       margin: 0 auto;
       padding: 20px 16px;
-      text-align: center;
+      text-align: center; /* Центрирование контента */
     }
 
+    /* Кнопка выбора бота */
     .bot-dropdown-container {
       position: relative;
       display: inline-block;
@@ -53,6 +66,9 @@
     }
 
     .bot-dropdown-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       background-color: #2A3342;
       color: #eaeaea;
       font-size: 18px;
@@ -69,9 +85,22 @@
       background-color: #004aa3;
     }
 
+    .bot-logo {
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
+    }
+
+    .arrow {
+      font-size: 1.3em;
+      margin-left: 8px;
+      display: inline-block;
+      transform: translateY(2px);
+    }
+
     .bot-dropdown-menu {
       position: absolute;
-      top: 100%;
+      top: calc(100% + 5px);
       left: 0;
       background-color: #262626;
       border: 1px solid #3a3a3a;
@@ -92,26 +121,26 @@
       background-color: #3a3a3a;
     }
 
+    /* Статистика */
     .stats-text {
       text-align: center;
-      margin: 12px 0;
-      font-family: 'Euclid Circular A', Arial, sans-serif;
+      margin: 12px 0 24px 0;
     }
 
     .stats-number {
       font-size: 72px;
       font-weight: 700;
       color: #ffffff;
-      font-family: inherit;
       font-feature-settings: 'tnum' 1, 'lnum' 1;
     }
 
     .stats-subtitle {
       font-size: 16px;
       color: #b5b5b5;
-      font-family: inherit;
+      margin-top: 4px;
     }
 
+    /* Секции */
     .section-block {
       margin: 24px 0;
       background-color: #19212a;
@@ -131,10 +160,10 @@
       margin-bottom: 16px;
     }
 
-    .tabs.top-tabs,
-    .tabs.bottom-tabs {
+    .tabs {
       display: flex;
       gap: 8px;
+      flex-wrap: wrap;
     }
 
     .tabs.top-tabs {
@@ -180,13 +209,6 @@
       font-size: 14px;
     }
 
-    .arrow {
-      font-size: 1.3em;
-      margin-left: 3px;
-      display: inline-block;
-      transform: translateY(2px);
-    }
-
     @media (max-width: 768px) {
       .stats-number {
         font-size: 56px;
@@ -204,8 +226,7 @@
     }
 
     @media (max-width: 480px) {
-      .tabs.top-tabs,
-      .tabs.bottom-tabs {
+      .tabs {
         gap: 6px;
       }
       .tab {
@@ -217,9 +238,13 @@
 </head>
 <body>
   <div class="container">
+    <!-- Кнопка с логотипом -->
     <div class="bot-dropdown-container">
       <button class="bot-dropdown-btn" id="botDropdownBtn">
-        Ваш бот <span class="arrow">▾</span>
+        <!-- Укажите правильный путь -->
+        <img src="static/templates/logo.png" alt="Logo" class="bot-logo" />
+        Ваш бот
+        <span class="arrow">▾</span>
       </button>
       <ul class="bot-dropdown-menu" id="botDropdownMenu">
         <li>Bot Alpha</li>
@@ -229,11 +254,13 @@
       </ul>
     </div>
 
+    <!-- Цифра и подпись -->
     <div class="stats-text">
       <div class="stats-number">21 941</div>
       <div class="stats-subtitle">користувачів @sdssdsgvds_bot</div>
     </div>
 
+    <!-- Приріст користувачів -->
     <section class="section-block">
       <h2 class="section-title">Приріст користувачів</h2>
       <div class="tabs-group">
@@ -250,6 +277,7 @@
       <div class="chart-placeholder">Тут буде графік</div>
     </section>
 
+    <!-- Повідомлень відправлено -->
     <section class="section-block">
       <h2 class="section-title">Повідомлень відправлено</h2>
       <div class="tabs-group">
@@ -271,22 +299,29 @@
     const botDropdownBtn = document.getElementById('botDropdownBtn');
     const botDropdownMenu = document.getElementById('botDropdownMenu');
 
+    // Открытие / закрытие меню по клику
     botDropdownBtn.addEventListener('click', function(event) {
-      botDropdownMenu.style.display = botDropdownMenu.style.display === 'block' ? 'none' : 'block';
+      botDropdownMenu.style.display =
+        botDropdownMenu.style.display === 'block' ? 'none' : 'block';
       botDropdownBtn.classList.toggle('active');
       event.stopPropagation();
     });
 
+    // Закрытие меню при клике вне его
     document.addEventListener('click', function() {
       botDropdownMenu.style.display = 'none';
       botDropdownBtn.classList.remove('active');
     });
 
+    // При выборе пункта - меняем текст кнопки
     const dropdownItems = botDropdownMenu.querySelectorAll('li');
     dropdownItems.forEach(item => {
       item.addEventListener('click', function() {
-        botDropdownBtn.textContent = this.textContent + ' ';
-        botDropdownBtn.innerHTML += '<span class="arrow">▾</span>';
+        botDropdownBtn.innerHTML = `
+          <img src="static/templates/logo.png" alt="Logo" class="bot-logo" />
+          ${this.textContent}
+          <span class="arrow">▾</span>
+        `;
       });
     });
   </script>

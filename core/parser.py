@@ -4,7 +4,7 @@ from typing import Union
 from core.models import UserStatRecord, MessageStatRecord
 
 
-class DataParer:  # DRAFT
+class DataParser:  # DRAFT
     def __init__(self, raw_data: dict):
         self.raw_data = raw_data
         self._parsed_data: Union[list[UserStatRecord], list[MessageStatRecord]] | None = None
@@ -36,3 +36,11 @@ class DataParer:  # DRAFT
 
     def to_json(self) -> dict:
         return {"raw_data": self.raw_data, "has_error": "error" in self.raw_data}
+
+
+a = {
+    "users": [
+        {"hour": 11, "total": 100, "active": 75, "inactive": 25},
+        {"hour": 12, "total": 150, "active": 100, "inactive": 50},
+    ]
+}

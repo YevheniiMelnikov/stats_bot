@@ -8,7 +8,7 @@ from core.api_client import APIClient
 import plotly.graph_objects as go
 from core.logger import logger
 from core.models import UserStatRecord
-from core.parser import DataParer
+from core.parser import DataParser
 
 
 async def webapp_handler(request: web.Request) -> FileResponse:
@@ -16,28 +16,7 @@ async def webapp_handler(request: web.Request) -> FileResponse:
     return web.FileResponse(file_path)
 
 
-async def get_stats_handler(request: web.Request) -> web.Response:
-    try:
-        data = await request.json()
-    except json.JSONDecodeError:
-        return web.json_response({"error": "Invalid JSON"}, status=400)
-
-    if not (bot_id := data.get("bot_id")):
-        return web.json_response({"error": "bot_id required"}, status=400)
-
-    try:
-        client: APIClient = request.app["api_client"]
-        result = await client.get_bot_stats(bot_id)
-        if "error" not in result:
-            logger.debug(f"Statistics for bot {bot_id} successfully fetched")
-        return web.json_response(result, status=400 if "error" in result else 200)
-
-    except Exception as e:
-        logger.error(f"Handler error: {e}")
-        return web.json_response({"error": "Internal server error"}, status=500)
-
-
-async def get_bots_handler(request: web.Request) -> web.Response:
+async def get_homepage_handler(request: web.Request) -> web.Response:
     try:
         data = await request.json()
     except json.JSONDecodeError:
@@ -48,9 +27,9 @@ async def get_bots_handler(request: web.Request) -> web.Response:
 
     try:
         client: APIClient = request.app["api_client"]
-        result = await client.get_bot_list(user_id)
+        result = await client.get_user_homepage(user_id)
         if "error" not in result:
-            logger.debug(f"Bots list for user {user_id} successfully fetched")
+            logger.debug(f"Statistics for bot {user_id} successfully fetched")
         return web.json_response(result, status=400 if "error" in result else 200)
 
     except Exception as e:
@@ -61,7 +40,7 @@ async def get_bots_handler(request: web.Request) -> web.Response:
 async def generate_graphs_handler(request: web.Request) -> web.Response:  # DRAFT
     try:
         data = await request.json()
-        stats = DataParer(data["stats"])
+        stats = DataParser(data["stats"])
         stats.parse_data()
         fig = go.Figure()
 
@@ -84,3 +63,7 @@ async def generate_graphs_handler(request: web.Request) -> web.Response:  # DRAF
     except Exception as e:
         logger.error(f"Error generating graphs: {e}")
         return web.json_response({"error": "Failed to generate graphs"}, status=500)
+
+
+async def get_bot_mirrors(request: web.Request) -> web.Response:
+    pass

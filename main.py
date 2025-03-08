@@ -6,7 +6,7 @@ from aiohttp import web
 
 from core.api_client import APIClient
 from core.router import main_router
-from core.web_handlers import webapp_handler, get_stats_handler, get_bots_handler
+from core.web_handlers import webapp_handler, get_homepage_handler, get_bot_mirrors
 from core.logger import logger
 from core.settings import Settings
 
@@ -19,10 +19,10 @@ async def start_web_app(app: web.Application) -> web.AppRunner:
     return runner
 
 
-async def set_app_routs(app: web.Application) -> None:
+async def set_app_routes(app: web.Application) -> None:
     app.router.add_route("*", "/webapp", webapp_handler)
-    app.router.add_get("/stats", get_stats_handler)
-    app.router.add_get("/bots", get_bots_handler)
+    app.router.add_get("/home", get_homepage_handler)
+    app.router.add_get("/mirrors", get_bot_mirrors)
 
 
 async def main():
@@ -36,7 +36,7 @@ async def main():
     app["bot"] = bot
     app["api_client"] = APIClient()
     SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path=Settings.WEBHOOK_PATH)
-    await set_app_routs(app)
+    await set_app_routes(app)
     setup_application(app, dp, bot=bot)
     runner = await start_web_app(app)
 
@@ -48,7 +48,7 @@ async def main():
         logger.critical(f"Bot start failed: {e}")
     finally:
         await runner.cleanup()
-        dp.shutdown()
+        await dp.shutdown()
         await bot.session.close()
 
 

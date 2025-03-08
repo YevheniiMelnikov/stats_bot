@@ -1,13 +1,12 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date
 
 
 @dataclass
 class BotInfo:
     bot_id: int
     bot_link: str
-    owner_id: int
     total_users: int
     mirror: bool = False
     mirrors: list[BotInfo] | None = None
@@ -15,8 +14,7 @@ class BotInfo:
 
 @dataclass
 class UserStatRecord:
-    from_time: datetime
-    to_time: datetime
+    time: date | str
     active: int
     inactive: int
     total: int
@@ -24,9 +22,8 @@ class UserStatRecord:
 
 @dataclass
 class MessageStatRecord:
-    from_time: datetime
-    to_time: datetime
+    time: date | str
     greetings: int
-    farewells: int
+    goodbyes: int
     mailings: int
     total: int
