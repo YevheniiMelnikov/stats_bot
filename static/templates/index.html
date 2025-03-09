@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Статистика бота</title>
 
-  <!-- Пример: подключение шрифта локально -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
   <style>
     @font-face {
       font-family: 'Euclid Circular A';
@@ -55,10 +56,9 @@
       max-width: 900px;
       margin: 0 auto;
       padding: 20px 16px;
-      text-align: center; /* Центрирование контента */
+      text-align: center;
     }
 
-    /* Кнопка выбора бота */
     .bot-dropdown-container {
       position: relative;
       display: inline-block;
@@ -121,7 +121,6 @@
       background-color: #3a3a3a;
     }
 
-    /* Статистика */
     .stats-text {
       text-align: center;
       margin: 12px 0 24px 0;
@@ -140,7 +139,6 @@
       margin-top: 4px;
     }
 
-    /* Секции */
     .section-block {
       margin: 24px 0;
       background-color: #19212a;
@@ -238,69 +236,61 @@
 </head>
 <body>
   <div class="container">
-    <!-- Кнопка с логотипом -->
     <div class="bot-dropdown-container">
       <button class="bot-dropdown-btn" id="botDropdownBtn">
-        <!-- Укажите правильный путь -->
         <img src="static/templates/logo.png" alt="Logo" class="bot-logo" />
         Ваш бот
         <span class="arrow">▾</span>
       </button>
-      <ul class="bot-dropdown-menu" id="botDropdownMenu">
-        <!-- Здесь мы будем динамически создавать пункты меню -->
-      </ul>
+      <ul class="bot-dropdown-menu" id="botDropdownMenu"></ul>
     </div>
 
-    <!-- Цифра и подпись (число юзеров и @bot_link) -->
     <div class="stats-text">
       <div class="stats-number" id="botTotalUsers">--</div>
       <div class="stats-subtitle" id="botSubtitle">користувачів @some_bot</div>
     </div>
 
-    <!-- Приріст користувачів -->
     <section class="section-block">
       <h2 class="section-title">Приріст користувачів</h2>
       <div class="tabs-group">
-        <div class="tabs top-tabs">
-          <button class="tab active">доба</button>
-          <button class="tab">тиждень</button>
+        <div class="tabs top-tabs" id="userIntervalTabs">
+          <button class="tab active" data-interval="day">доба</button>
+          <button class="tab" data-interval="week">тиждень</button>
         </div>
-        <div class="tabs bottom-tabs">
-          <button class="tab active">загально</button>
-          <button class="tab">живих</button>
-          <button class="tab">неактивних</button>
+        <div class="tabs bottom-tabs" id="userTypeTabs">
+          <button class="tab active" data-type="all">загально</button>
+          <button class="tab" data-type="active">живих</button>
+          <button class="tab" data-type="inactive">неактивних</button>
         </div>
       </div>
-      <div class="chart-placeholder" id="usersChartPlaceholder">Тут буде графік</div>
+      <div class="chart-placeholder" id="usersChartPlaceholder"></div>
     </section>
 
-    <!-- Повідомлень відправлено -->
     <section class="section-block">
       <h2 class="section-title">Повідомлень відправлено</h2>
       <div class="tabs-group">
-        <div class="tabs top-tabs">
-          <button class="tab active">доба</button>
-          <button class="tab">тиждень</button>
+        <div class="tabs top-tabs" id="messageIntervalTabs">
+          <button class="tab active" data-interval="day">доба</button>
+          <button class="tab" data-interval="week">тиждень</button>
         </div>
-        <div class="tabs bottom-tabs">
-          <button class="tab active">привітання</button>
-          <button class="tab">прощання</button>
-          <button class="tab">розсилки</button>
+        <div class="tabs bottom-tabs" id="messageTypeTabs">
+          <button class="tab active" data-type="greetings">привітання</button>
+          <button class="tab" data-type="goodbyes">прощання</button>
+          <button class="tab" data-type="mailings">розсилки</button>
         </div>
       </div>
-      <div class="chart-placeholder" id="messagesChartPlaceholder">Тут буде графік</div>
+      <div class="chart-placeholder" id="messagesChartPlaceholder"></div>
     </section>
   </div>
 
   <script>
-    // ------------------------------------------------
-    // Пример получения userId (здесь – просто константа):
-    // ------------------------------------------------
-    const userId = 123;
+    let userId = 123;
+    let selectedBotId = 123;
+    let userInterval = "day";
+    let userType = "all";
+    let messageInterval = "day";
+    let messageType = "greetings";
 
-    // ------------------------------------------------
-    // Дропдаун по выбору бота
-    // ------------------------------------------------
     const botDropdownBtn = document.getElementById('botDropdownBtn');
     const botDropdownMenu = document.getElementById('botDropdownMenu');
 
@@ -316,115 +306,231 @@
       botDropdownBtn.classList.remove('active');
     });
 
-    // Когда юзер кликает на пункт выпадающего меню ботов
-    // мы меняем текст кнопки и можем перерисовывать статистику.
     function onBotSelected(botInfo) {
+      selectedBotId = botInfo.bot_id;
       botDropdownBtn.innerHTML = `
         <img src="static/templates/logo.png" alt="Logo" class="bot-logo" />
         ${botInfo.bot_link}
         <span class="arrow">▾</span>
       `;
-      // Заполняем блок "количество пользователей" и т.д.
       updateBotStats(botInfo);
+      fetchAndDrawUsersChart();
+      fetchAndDrawMessagesChart();
     }
 
-    // Обновление UI при выборе бота
     function updateBotStats(botInfo) {
       const botTotalUsers = document.getElementById('botTotalUsers');
       const botSubtitle = document.getElementById('botSubtitle');
-
       botTotalUsers.textContent = botInfo.total_users || '--';
       botSubtitle.textContent = `користувачів ${botInfo.bot_link}`;
-
-      // Если нам приходит статистика сразу (как в default_bot) –
-      // можем выводить графики. Если нет – нужно делать доп. запрос.
     }
 
-    // ------------------------------------------------
-    // Функция инициализации страницы (автоматический запрос /home)
-    // ------------------------------------------------
     function initPage() {
-      fetch(`/home?user_id=${userId}`, {
-        method: 'GET',
+      fetch(`/home?user_id=${userId}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          console.error('Error fetching homepage data:', data.error);
+          return;
+        }
+
+        if (data.bot_list && Array.isArray(data.bot_list)) {
+          botDropdownMenu.innerHTML = '';
+          data.bot_list.forEach(botItem => {
+            const li = document.createElement('li');
+            li.textContent = botItem.bot_link;
+            li.addEventListener('click', () => onBotSelected(botItem));
+            botDropdownMenu.appendChild(li);
+          });
+        }
+
+        if (data.default_bot) {
+          onBotSelected(data.default_bot);
+        }
       })
-        .then(response => response.json())
-        .then(data => {
-          if (data.error) {
-            console.error('Error fetching homepage data:', data.error);
+      .catch(err => {
+        console.error('Error:', err);
+      });
+    }
+
+    function fetchAndDrawUsersChart() {
+      const placeholder = document.getElementById('usersChartPlaceholder');
+      placeholder.textContent = 'Завантаження...';
+      fetch(`/users/${selectedBotId}/${userType}/${userInterval}`)
+        .then(r => r.json())
+        .then(usersData => {
+          if (usersData.error) {
+            placeholder.textContent = `Помилка: ${usersData.error}`;
             return;
           }
-
-          // Ожидаем структуру:
-          // {
-          //   "default_bot": {
-          //       "bot_id": 123,
-          //       "bot_link": "@sdssdsgvds_bot",
-          //       "total_users": 21941,
-          //       "user_stats": {...},
-          //       "message_stats": {...}
-          //   },
-          //   "bot_list": [
-          //       {"bot_id": 123, "bot_link": "@sdssdsgvds_bot", "total_users": 21941},
-          //       ...
-          //   ]
-          // }
-
-          console.log('Homepage data:', data);
-
-          // 1) Заполним выпадающий список ботов
-          if (data.bot_list && Array.isArray(data.bot_list)) {
-            botDropdownMenu.innerHTML = ''; // Очистим, если что-то было
-            data.bot_list.forEach(botItem => {
-              const li = document.createElement('li');
-              li.textContent = botItem.bot_link;
-              li.addEventListener('click', () => onBotSelected(botItem));
-              botDropdownMenu.appendChild(li);
-            });
-          }
-
-          // 2) Отобразим "дефолтного" бота
-          if (data.default_bot) {
-            // Установим текст кнопки, количество пользователей и т.д.
-            onBotSelected(data.default_bot);
-
-            // А также отрисуем графики, если данные уже содержат user_stats / message_stats
-            drawUsersChart(data.default_bot.user_stats);
-            drawMessagesChart(data.default_bot.message_stats);
-          }
+          drawUsersChart(usersData);
         })
-        .catch(err => {
-          console.error('Error:', err);
+        .catch(e => {
+          console.error(e);
+          placeholder.textContent = 'Error fetching user stats';
         });
     }
 
-    // ------------------------------------------------
-    // Пример отрисовки графика (здесь – просто заглушка)
-    // ------------------------------------------------
-    function drawUsersChart(userStats) {
-      const placeholder = document.getElementById('usersChartPlaceholder');
-      if (!userStats || !userStats.users) {
-        placeholder.textContent = 'Дані недоступні';
-        return;
-      }
-      // Здесь можно вызвать Plotly или любую другую библиотеку
-      // и построить график из userStats.users
-      placeholder.textContent = `Графік з ${userStats.users.length} точками`;
-    }
-
-    function drawMessagesChart(messageStats) {
+    function fetchAndDrawMessagesChart() {
       const placeholder = document.getElementById('messagesChartPlaceholder');
-      if (!messageStats || !messageStats.messages) {
+      placeholder.textContent = 'Завантаження...';
+      fetch(`/messages/${selectedBotId}/${messageType}/${messageInterval}`)
+        .then(r => r.json())
+        .then(messagesData => {
+          if (messagesData.error) {
+            placeholder.textContent = `Помилка: ${messagesData.error}`;
+            return;
+          }
+          drawMessagesChart(messagesData);
+        })
+        .catch(e => {
+          console.error(e);
+          placeholder.textContent = 'Error fetching messages stats';
+        });
+    }
+
+    function drawUsersChart(usersData) {
+      const placeholderId = 'usersChartPlaceholder';
+      const placeholder = document.getElementById(placeholderId);
+
+      if (!usersData.users) {
         placeholder.textContent = 'Дані недоступні';
         return;
       }
-      // Аналогично для сообщений
-      placeholder.textContent = `Графік з ${messageStats.messages.length} точками`;
+
+      // Подготовим массив x и два массива y (активные/неактивные)
+      const xArray = [];
+      const yActive = [];
+      const yInactive = [];
+
+      usersData.users.forEach(item => {
+        // Если есть hour, делаем подпись "hour:XX". Если date, берем date
+        if (item.hour !== undefined) {
+          xArray.push(`hour:${item.hour}`);
+        } else if (item.date) {
+          xArray.push(item.date);
+        } else {
+          xArray.push("???");
+        }
+        yActive.push(item.active);
+        yInactive.push(item.inactive);
+      });
+
+      const traceActive = {
+        x: xArray,
+        y: yActive,
+        name: "Active Users",
+        mode: "lines+markers",
+        type: "scatter"
+      };
+
+      const traceInactive = {
+        x: xArray,
+        y: yInactive,
+        name: "Inactive Users",
+        mode: "lines+markers",
+        type: "scatter"
+      };
+
+      const layout = {
+        title: "User Stats",
+        paper_bgcolor: "#19212a",
+        plot_bgcolor: "#19212a",
+        font: { color: "#eaeaea" },
+        xaxis: { zeroline: false },
+        yaxis: { zeroline: false }
+      };
+
+      Plotly.newPlot(placeholderId, [traceActive, traceInactive], layout);
     }
 
-    // ------------------------------------------------
-    // Запускаем init при загрузке страницы
-    // ------------------------------------------------
-    document.addEventListener('DOMContentLoaded', initPage);
+    function drawMessagesChart(messagesData) {
+      const placeholderId = 'messagesChartPlaceholder';
+      const placeholder = document.getElementById(placeholderId);
+
+      if (!messagesData.messages) {
+        placeholder.textContent = 'Дані недоступні';
+        return;
+      }
+
+      // Для простоты отрисуем один ряд "total"
+      const xArray = [];
+      const yTotal = [];
+
+      messagesData.messages.forEach(item => {
+        if (item.hour !== undefined) {
+          xArray.push(`hour:${item.hour}`);
+        } else if (item.date) {
+          xArray.push(item.date);
+        } else {
+          xArray.push("???");
+        }
+        yTotal.push(item.total);
+      });
+
+      const trace = {
+        x: xArray,
+        y: yTotal,
+        name: "Total Messages",
+        type: "bar"
+      };
+
+      const layout = {
+        title: "Messages Stats",
+        paper_bgcolor: "#19212a",
+        plot_bgcolor: "#19212a",
+        font: { color: "#eaeaea" },
+        xaxis: { zeroline: false },
+        yaxis: { zeroline: false }
+      };
+
+      Plotly.newPlot(placeholderId, [trace], layout);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initPage();
+
+      const userIntervalTabs = document.getElementById('userIntervalTabs').querySelectorAll('.tab');
+      const userTypeTabs = document.getElementById('userTypeTabs').querySelectorAll('.tab');
+      const messageIntervalTabs = document.getElementById('messageIntervalTabs').querySelectorAll('.tab');
+      const messageTypeTabs = document.getElementById('messageTypeTabs').querySelectorAll('.tab');
+
+      userIntervalTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          userIntervalTabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          userInterval = tab.dataset.interval;
+          fetchAndDrawUsersChart();
+        });
+      });
+
+      userTypeTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          userTypeTabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          userType = tab.dataset.type;
+          fetchAndDrawUsersChart();
+        });
+      });
+
+      messageIntervalTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          messageIntervalTabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          messageInterval = tab.dataset.interval;
+          fetchAndDrawMessagesChart();
+        });
+      });
+
+      messageTypeTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          messageTypeTabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          messageType = tab.dataset.type;
+          fetchAndDrawMessagesChart();
+        });
+      });
+    });
   </script>
 </body>
 </html>

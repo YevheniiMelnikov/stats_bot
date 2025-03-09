@@ -31,6 +31,7 @@ class APIClient:
         try:
             async with session.request(method, url, params=params, headers=headers) as response:
                 data = await response.json()
+                logger.debug(f"Received response: {data}")
                 return data
         except aiohttp.ClientError as e:
             logger.error(f"Error making {method} request to {url}: {e}")
