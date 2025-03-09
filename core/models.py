@@ -4,18 +4,8 @@ from datetime import date, datetime
 
 
 @dataclass
-class BotInfo:
-    bot_id: int
-    bot_link: str
-    total_users: int
-    registered_at: datetime
-    mirror: bool = False
-    mirrors: list[BotInfo] | None = None
-
-
-@dataclass
 class UserStatRecord:
-    time: date | str
+    time: date | datetime | str
     active: int
     inactive: int
     total: int
@@ -23,8 +13,18 @@ class UserStatRecord:
 
 @dataclass
 class MessageStatRecord:
-    time: date | str
+    time: date | datetime | str
     greetings: int
     goodbyes: int
-    mailings: int
+    mailings: dict[str, int]
     total: int
+
+
+@dataclass
+class BotInfo:
+    bot_id: int
+    bot_link: str
+    total_users: int
+    registered_at: datetime
+    mirror: bool = False
+    mirrors: list[BotInfo] | None = None

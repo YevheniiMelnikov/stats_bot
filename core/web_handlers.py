@@ -6,14 +6,13 @@ from aiohttp.web_fileresponse import FileResponse
 from core.api_client import APIClient
 import plotly.graph_objects as go
 from core.logger import logger
-from core.mock_data import (
+from core.utils import convert_user_stats_to_records, convert_messages_to_records
+from test_data.mock_data import (
     get_users_mock_data,
     get_messages_mock_data,
     get_selected_bot_mock_data,
     get_homepage_mock_data,
 )
-from core.models import UserStatRecord
-from core.parser import DataParser
 
 
 async def webapp_handler(request: web.Request) -> FileResponse:
@@ -137,33 +136,32 @@ async def get_stats_handler(request: web.Request) -> web.Response:
             return web.json_response({"error": f"Unknown action '{action}'"}, status=400)
 
     except Exception as e:
-        logger.error(f"Error in stats_get_handler (action={action}): {e}")
+        logger.error(f"Error in stats_get_handler: {e}")
         return web.json_response({"error": "Internal server error"}, status=500)
 
 
-async def generate_graphs_handler(request: web.Request) -> web.Response:  # DRAFT
+async def generate_graphs_handler(request: web.Request) -> web.Response:
     try:
-        data = await request.json()
-        stats = DataParser(data["stats"])
-        stats.parse_data()
+        body = await request.json()
         fig = go.Figure()
 
-        if isinstance(stats._parsed_data[0], UserStatRecord):  # TODO: ADD PROPERTY TO ACCESS CLASS DATA
-            times = [record.from_time for record in stats._parsed_data]
-            active = [record.active for record in stats._parsed_data]
-            inactive = [record.inactive for record in stats._parsed_data]
-
-            fig.add_trace(go.Scatter(x=times, y=active, name="Active Users"))
-            fig.add_trace(go.Scatter(x=times, y=inactive, name="Inactive Users"))
+        if "users" in body:
+            records = convert_user_stats_to_records(body)
+            x1 = [r.time for r in records]
+            y_active = [r.active for r in records]
+            y_inactive = [r.inactive for r in records]
+            fig.add_trace(go.Scatter(x=x1, y=y_active, name="Active Users"))
+            fig.add_trace(go.Scatter(x=x1, y=y_inactive, name="Inactive Users"))
+        elif "messages" in body:
+            records = convert_messages_to_records(body)
+            x2 = [r.time for r in records]
+            y_total = [r.total for r in records]
+            fig.add_trace(go.Bar(x=x2, y=y_total, name="Total Messages"))
         else:
-            times = [record.from_time for record in stats._parsed_data]
-            messages = [record.total for record in stats._parsed_data]
+            return web.json_response({"error": "No 'users' or 'messages' key found"}, status=400)
 
-            fig.add_trace(go.Scatter(x=times, y=messages, name="Total Messages"))
-
-        graph_html = fig.to_html(full_html=False)
-        return web.json_response({"graph_html": graph_html})
-
+        html_code = fig.to_html(full_html=False)
+        return web.json_response({"graph_html": html_code})
     except Exception as e:
         logger.error(f"Error generating graphs: {e}")
         return web.json_response({"error": "Failed to generate graphs"}, status=500)

@@ -13,6 +13,7 @@ from core.web_handlers import (
     get_messages_handler,
     get_bot_handler,
     get_stats_handler,
+    generate_graphs_handler,
 )
 from core.logger import logger
 from core.settings import Settings
@@ -28,6 +29,7 @@ async def start_web_app(app: web.Application) -> web.AppRunner:
 
 async def set_app_routes(app: web.Application) -> None:
     app.router.add_route("*", "/webapp", webapp_handler)
+    app.router.add_post("/generate_graphs", generate_graphs_handler)
     app.router.add_get("/stats", get_stats_handler)
     app.router.add_get("/start", get_homepage_handler)
     app.router.add_get("/users/{bot_id}/{type}/{interval}", get_users_handler)
