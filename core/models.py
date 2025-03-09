@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 
 
 @dataclass
@@ -8,6 +8,7 @@ class BotInfo:
     bot_id: int
     bot_link: str
     total_users: int
+    registered_at: datetime
     mirror: bool = False
     mirrors: list[BotInfo] | None = None
 

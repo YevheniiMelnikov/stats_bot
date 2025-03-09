@@ -46,3 +46,34 @@ async function fetchAndDisplayStats() {
         console.error('Error:', error);
     }
 }
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const user_id = 123; // Здесь нужно подставить реальный user_id
+
+  fetch('/home', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ user_id })
+  })
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        console.error('Error fetching homepage data:', data.error);
+      } else {
+        console.log('Homepage data:', data);
+        // Здесь обновляем UI:
+        // 1) Заполняем дропдаун списком ботов
+        // 2) Ставим дефолтный бот
+        // 3) Рисуем график пользователей с data.user_stats
+        // 4) Рисуем график сообщений с data.message_stats
+        // и т.д.
+      }
+    })
+    .catch(err => {
+      console.error('Error:', err);
+    });
+});
+</script>

@@ -247,17 +247,14 @@
         <span class="arrow">▾</span>
       </button>
       <ul class="bot-dropdown-menu" id="botDropdownMenu">
-        <li>Bot Alpha</li>
-        <li>Bot Beta</li>
-        <li>Bot Gamma</li>
-        <li>Bot Delta</li>
+        <!-- Здесь мы будем динамически создавать пункты меню -->
       </ul>
     </div>
 
-    <!-- Цифра и подпись -->
+    <!-- Цифра и подпись (число юзеров и @bot_link) -->
     <div class="stats-text">
-      <div class="stats-number">21 941</div>
-      <div class="stats-subtitle">користувачів @sdssdsgvds_bot</div>
+      <div class="stats-number" id="botTotalUsers">--</div>
+      <div class="stats-subtitle" id="botSubtitle">користувачів @some_bot</div>
     </div>
 
     <!-- Приріст користувачів -->
@@ -274,7 +271,7 @@
           <button class="tab">неактивних</button>
         </div>
       </div>
-      <div class="chart-placeholder">Тут буде графік</div>
+      <div class="chart-placeholder" id="usersChartPlaceholder">Тут буде графік</div>
     </section>
 
     <!-- Повідомлень відправлено -->
@@ -291,15 +288,22 @@
           <button class="tab">розсилки</button>
         </div>
       </div>
-      <div class="chart-placeholder">Тут буде графік</div>
+      <div class="chart-placeholder" id="messagesChartPlaceholder">Тут буде графік</div>
     </section>
   </div>
 
   <script>
+    // ------------------------------------------------
+    // Пример получения userId (здесь – просто константа):
+    // ------------------------------------------------
+    const userId = 123;
+
+    // ------------------------------------------------
+    // Дропдаун по выбору бота
+    // ------------------------------------------------
     const botDropdownBtn = document.getElementById('botDropdownBtn');
     const botDropdownMenu = document.getElementById('botDropdownMenu');
 
-    // Открытие / закрытие меню по клику
     botDropdownBtn.addEventListener('click', function(event) {
       botDropdownMenu.style.display =
         botDropdownMenu.style.display === 'block' ? 'none' : 'block';
@@ -307,23 +311,120 @@
       event.stopPropagation();
     });
 
-    // Закрытие меню при клике вне его
     document.addEventListener('click', function() {
       botDropdownMenu.style.display = 'none';
       botDropdownBtn.classList.remove('active');
     });
 
-    // При выборе пункта - меняем текст кнопки
-    const dropdownItems = botDropdownMenu.querySelectorAll('li');
-    dropdownItems.forEach(item => {
-      item.addEventListener('click', function() {
-        botDropdownBtn.innerHTML = `
-          <img src="static/templates/logo.png" alt="Logo" class="bot-logo" />
-          ${this.textContent}
-          <span class="arrow">▾</span>
-        `;
-      });
-    });
+    // Когда юзер кликает на пункт выпадающего меню ботов
+    // мы меняем текст кнопки и можем перерисовывать статистику.
+    function onBotSelected(botInfo) {
+      botDropdownBtn.innerHTML = `
+        <img src="static/templates/logo.png" alt="Logo" class="bot-logo" />
+        ${botInfo.bot_link}
+        <span class="arrow">▾</span>
+      `;
+      // Заполняем блок "количество пользователей" и т.д.
+      updateBotStats(botInfo);
+    }
+
+    // Обновление UI при выборе бота
+    function updateBotStats(botInfo) {
+      const botTotalUsers = document.getElementById('botTotalUsers');
+      const botSubtitle = document.getElementById('botSubtitle');
+
+      botTotalUsers.textContent = botInfo.total_users || '--';
+      botSubtitle.textContent = `користувачів ${botInfo.bot_link}`;
+
+      // Если нам приходит статистика сразу (как в default_bot) –
+      // можем выводить графики. Если нет – нужно делать доп. запрос.
+    }
+
+    // ------------------------------------------------
+    // Функция инициализации страницы (автоматический запрос /home)
+    // ------------------------------------------------
+    function initPage() {
+      fetch(`/home?user_id=${userId}`, {
+        method: 'GET',
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.error) {
+            console.error('Error fetching homepage data:', data.error);
+            return;
+          }
+
+          // Ожидаем структуру:
+          // {
+          //   "default_bot": {
+          //       "bot_id": 123,
+          //       "bot_link": "@sdssdsgvds_bot",
+          //       "total_users": 21941,
+          //       "user_stats": {...},
+          //       "message_stats": {...}
+          //   },
+          //   "bot_list": [
+          //       {"bot_id": 123, "bot_link": "@sdssdsgvds_bot", "total_users": 21941},
+          //       ...
+          //   ]
+          // }
+
+          console.log('Homepage data:', data);
+
+          // 1) Заполним выпадающий список ботов
+          if (data.bot_list && Array.isArray(data.bot_list)) {
+            botDropdownMenu.innerHTML = ''; // Очистим, если что-то было
+            data.bot_list.forEach(botItem => {
+              const li = document.createElement('li');
+              li.textContent = botItem.bot_link;
+              li.addEventListener('click', () => onBotSelected(botItem));
+              botDropdownMenu.appendChild(li);
+            });
+          }
+
+          // 2) Отобразим "дефолтного" бота
+          if (data.default_bot) {
+            // Установим текст кнопки, количество пользователей и т.д.
+            onBotSelected(data.default_bot);
+
+            // А также отрисуем графики, если данные уже содержат user_stats / message_stats
+            drawUsersChart(data.default_bot.user_stats);
+            drawMessagesChart(data.default_bot.message_stats);
+          }
+        })
+        .catch(err => {
+          console.error('Error:', err);
+        });
+    }
+
+    // ------------------------------------------------
+    // Пример отрисовки графика (здесь – просто заглушка)
+    // ------------------------------------------------
+    function drawUsersChart(userStats) {
+      const placeholder = document.getElementById('usersChartPlaceholder');
+      if (!userStats || !userStats.users) {
+        placeholder.textContent = 'Дані недоступні';
+        return;
+      }
+      // Здесь можно вызвать Plotly или любую другую библиотеку
+      // и построить график из userStats.users
+      placeholder.textContent = `Графік з ${userStats.users.length} точками`;
+    }
+
+    function drawMessagesChart(messageStats) {
+      const placeholder = document.getElementById('messagesChartPlaceholder');
+      if (!messageStats || !messageStats.messages) {
+        placeholder.textContent = 'Дані недоступні';
+        return;
+      }
+      // Аналогично для сообщений
+      placeholder.textContent = `Графік з ${messageStats.messages.length} точками`;
+    }
+
+    // ------------------------------------------------
+    // Запускаем init при загрузке страницы
+    // ------------------------------------------------
+    document.addEventListener('DOMContentLoaded', initPage);
   </script>
 </body>
 </html>
