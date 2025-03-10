@@ -31,7 +31,7 @@ async def set_app_routes(app: web.Application) -> None:
     app.router.add_route("*", "/webapp", webapp_handler)
     app.router.add_post("/generate_graphs", generate_graphs_handler)
     app.router.add_get("/stats", get_stats_handler)
-    app.router.add_get("/start", get_homepage_handler)
+    app.router.add_get("/home", get_homepage_handler)
     app.router.add_get("/users/{bot_id}/{type}/{interval}", get_users_handler)
     app.router.add_get("/users/{bot_id}/{type}/{interval}/{mirror}", get_users_handler)
     app.router.add_get("/bot/{bot_id}", get_bot_handler)

@@ -48,12 +48,18 @@ def convert_dict_to_botinfo(data: dict[str, Any]) -> BotInfo:
     bot_id = data["bot_id"]
     bot_link = data["bot_link"]
     total_users = data["total_users"]
-    registered_at = datetime.fromisoformat(data.get("registered_at"))
+    reg_str = data.get("registered_at")
+    if reg_str:
+        registered_at = datetime.fromisoformat(reg_str)
+    else:
+        registered_at = datetime.now()
+
     mirror = data.get("mirror", False)
     raw_mirrors = data.get("mirrors", [])
     ml = []
     for m in raw_mirrors:
         ml.append(convert_dict_to_botinfo(m))
+
     return BotInfo(
         bot_id=bot_id,
         bot_link=bot_link,

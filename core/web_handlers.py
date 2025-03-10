@@ -155,13 +155,18 @@ async def generate_graphs_handler(request: web.Request) -> web.Response:
         elif "messages" in body:
             records = convert_messages_to_records(body)
             x2 = [r.time for r in records]
-            y_total = [r.total for r in records]
-            fig.add_trace(go.Bar(x=x2, y=y_total, name="Total Messages"))
+            sums = []
+            for r in records:
+                mails = r.mailings["active"] + r.mailings["inactive"]
+                sums.append(r.greetings + r.goodbyes + mails)
+
+            fig.add_trace(go.Bar(x=x2, y=sums, name="All messages"))
         else:
             return web.json_response({"error": "No 'users' or 'messages' key found"}, status=400)
 
         html_code = fig.to_html(full_html=False)
         return web.json_response({"graph_html": html_code})
+
     except Exception as e:
         logger.error(f"Error generating graphs: {e}")
         return web.json_response({"error": "Failed to generate graphs"}, status=500)

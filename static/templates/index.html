@@ -5,9 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Статистика бота</title>
 
+  <!-- Подключаем Plotly -->
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
+  <!-- Шрифты Euclid Circular A и Inter (пример с локальными файлами) -->
   <style>
+    /* Если шрифты недоступны, будет fallback */
     @font-face {
       font-family: 'Euclid Circular A';
       src: url('static/fonts/EuclidCircularA-Regular.woff2') format('woff2'),
@@ -29,206 +32,321 @@
       font-weight: 700;
       font-style: normal;
     }
-
-    :root {
-      font-family: 'Euclid Circular A', Arial, sans-serif;
+    @font-face {
+      font-family: 'Inter';
+      src: url('static/fonts/Inter-Bold.woff2') format('woff2');
+      font-weight: 700;
+      font-style: normal;
     }
 
+    /* Базовые стили */
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: inherit;
     }
-
     html, body {
       height: 100%;
-    }
-
-    body {
       background-color: #19212a;
       color: #eaeaea;
       font-size: 14px;
       line-height: 1.5;
+      font-family: 'Euclid Circular A', Arial, sans-serif;
     }
-
     .container {
       max-width: 900px;
       margin: 0 auto;
       padding: 20px 16px;
-      text-align: center;
+      text-align: center; /* Кнопка выбора бота по центру */
     }
 
+    /* ===== Кнопка выбора бота (логотип, надпись, псевдо-«стрелка») ===== */
     .bot-dropdown-container {
       position: relative;
       display: inline-block;
-      margin: 20px auto;
+      margin-bottom: 24px;
     }
-
     .bot-dropdown-btn {
+      position: relative; /* чтобы .arrow-shape можно было позиционировать */
       display: inline-flex;
       align-items: center;
       justify-content: center;
       background-color: #2A3342;
       color: #eaeaea;
-      font-size: 18px;
-      font-weight: bold;
-      padding: 16px 24px;
       border: none;
       border-radius: 30px;
       cursor: pointer;
       min-width: 220px;
+      padding: 12px 20px;
+      font-family: 'Euclid Circular A';
+      font-weight: 500;
+      font-size: 20px;
+      line-height: 100%;
+      letter-spacing: 0%;
     }
-
-    .bot-dropdown-btn.active,
-    .bot-dropdown-btn:focus {
+    /* Логотип бота */
+    .bot-dropdown-btn .bot-logo {
+      width: 28px;
+      height: 28px;
+      margin-right: 10px;
+    }
+    /* Псевдо-«стрелка» (Vector 181), сейчас это треугольник-галочка */
+    .arrow-shape {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      top: 50%;
+      right: 16px;
+      transform: translateY(-50%) rotate(45deg);
+      opacity: 0.7;
+      border-right: 2px solid rgba(255, 255, 255, 0.53);
+      border-bottom: 2px solid rgba(255, 255, 255, 0.53);
+    }
+    .bot-dropdown-btn.active {
       background-color: #004aa3;
     }
 
-    .bot-logo {
-      width: 20px;
-      height: 20px;
-      margin-right: 8px;
-    }
-
-    .arrow {
-      font-size: 1.3em;
-      margin-left: 8px;
-      display: inline-block;
-      transform: translateY(2px);
-    }
-
+    /* Выпадающее меню для списка ботов */
     .bot-dropdown-menu {
       position: absolute;
-      top: calc(100% + 5px);
+      top: calc(100% + 4px);
       left: 0;
+      width: 100%;
       background-color: #262626;
       border: 1px solid #3a3a3a;
-      border-radius: 4px;
+      border-radius: 6px;
       list-style: none;
-      width: 100%;
-      display: none;
-      z-index: 1000;
+      max-height: 250px;
+      overflow-y: auto;
+      opacity: 0;
+      transform: translateY(-5px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      pointer-events: none;
+      z-index: 999;
     }
-
+    .bot-dropdown-menu.open {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
     .bot-dropdown-menu li {
       padding: 10px 16px;
       cursor: pointer;
-      color: #eaeaea;
     }
-
     .bot-dropdown-menu li:hover {
       background-color: #3a3a3a;
     }
-
-    .stats-text {
+    .bot-dropdown-menu li.close-btn {
       text-align: center;
-      margin: 12px 0 24px 0;
+      font-size: 14px;
+      font-weight: 400;
+      color: #eaeaea;
     }
 
+    /* ===== Статистика (число и подпись) ===== */
+    .stats-text {
+      text-align: center;
+      margin-bottom: 30px;
+    }
     .stats-number {
-      font-size: 72px;
-      font-weight: 700;
+      font-family: 'Euclid Circular A';
+      font-weight: 500;
+      font-size: 64px;
+      line-height: 100%;
+      letter-spacing: 0%;
       color: #ffffff;
       font-feature-settings: 'tnum' 1, 'lnum' 1;
     }
-
     .stats-subtitle {
-      font-size: 16px;
+      font-family: 'Euclid Circular A';
+      font-weight: 400;
+      font-size: 18px;
+      line-height: 100%;
+      letter-spacing: 0%;
       color: #b5b5b5;
       margin-top: 4px;
     }
 
+    /* ===== Секции графиков ===== */
     .section-block {
-      margin: 24px 0;
+      margin-bottom: 40px;
       background-color: #19212a;
       border-radius: 8px;
       padding: 24px;
       text-align: left;
     }
 
-    .section-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: #ffffff;
-      margin-bottom: 16px;
-    }
-
-    .tabs-group {
-      margin-bottom: 16px;
-    }
-
-    .tabs {
+    /* Заголовок над первым графиком */
+    .chart-header {
       display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-family: 'Inter';
+      font-weight: 700;
+      font-size: 21px;
+      line-height: 100%;
+      margin: 0;
+      color: #ffffff;
     }
 
-    .tabs.top-tabs {
-      margin-bottom: 8px;
+    /* Кнопка выбора дублёров (справа) */
+    .mirror-dropdown-container {
+      position: relative;
     }
-
-    .tab {
-      background-color: #2c2c2c;
-      border: 1px solid #3a3a3a;
+    .mirror-dropdown-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      background-color: #2A3342;
       color: #eaeaea;
-      padding: 10px 20px;
-      border-radius: 30px;
-      font-size: 16px;
-      font-weight: 500;
+      border: none;
+      border-radius: 20px;
       cursor: pointer;
-      transition: background-color 0.2s;
+      padding: 8px 16px;
+      font-family: 'Euclid Circular A';
+      font-weight: 400;
+      font-size: 14px;
+      line-height: 100%;
+      letter-spacing: 0%;
     }
-
-    .tab:hover {
+    .mirror-dropdown-btn .arrow-shape {
+      width: 5px;
+      height: 5px;
+      right: 8px;
+      border-right: 2px solid rgba(255, 255, 255, 0.53);
+      border-bottom: 2px solid rgba(255, 255, 255, 0.53);
+    }
+    .mirror-dropdown-menu {
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      background-color: #262626;
+      border: 1px solid #3a3a3a;
+      border-radius: 6px;
+      list-style: none;
+      max-height: 200px;
+      overflow-y: auto;
+      opacity: 0;
+      transform: translateY(-5px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      pointer-events: none;
+      z-index: 999;
+      width: 150px;
+    }
+    .mirror-dropdown-menu.open {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .mirror-dropdown-menu li {
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+    .mirror-dropdown-menu li:hover {
       background-color: #3a3a3a;
     }
 
-    .tabs.top-tabs .tab.active {
-      background-color: #2c2c2c;
-      border-color: #2c2c2c;
-    }
-
-    .tabs.bottom-tabs .tab.active {
-      background-color: #014aa6;
-      border-color: #014aa6;
-    }
-
-    .chart-placeholder {
+    /* Контейнер для графика (чтобы можно было скроллить при 24 часах) */
+    .chart-scroll {
       width: 100%;
-      height: 280px;
+      overflow-x: auto;
+    }
+    /* Сам график */
+    .chart-placeholder {
+      height: 400px;
       background-color: #19212a;
-      border: 1px dashed #3a3a3a;
-      border-radius: 6px;
+      margin: 0 auto;
+    }
+
+    /* Фильтры */
+    .tabs-group {
+      margin-top: 16px;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #888888;
-      font-size: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+    }
+    .tab {
+      cursor: pointer;
+      padding: 8px 16px;
+      border-radius: 20px;
+      background-color: transparent;
+      border: 1px solid #3a3a3a;
+      color: #eaeaea;
+      transition: background-color 0.2s, border-color 0.2s;
+      font-family: 'Euclid Circular A';
+      font-weight: 400;
+      font-size: 18px;
+      line-height: 100%;
+      letter-spacing: 0%;
+    }
+    .tab:hover {
+      background-color: #2c2c2c;
+    }
+    .tab.active {
+      background-color: #2c2c2c;
+    }
+
+    /* ===== Новые цвета ===== */
+    /* «живих» (active) => зелёный */
+    .tab[data-type="active"] {
+      border-color: rgba(122, 194, 96, 1);
+    }
+    .tab.active[data-type="active"] {
+      background-color: rgba(122, 194, 96, 1);
+      border-color: rgba(122, 194, 96, 1);
+      color: #19212a;
+    }
+
+    /* «неактивних» (inactive) => красный (rgba(208,93,91,1) ) */
+    .tab[data-type="inactive"] {
+      border-color: rgba(208, 93, 91, 1);
+    }
+    .tab.active[data-type="inactive"] {
+      background-color: rgba(208, 93, 91, 1);
+      border-color: rgba(208, 93, 91, 1);
+      color: #19212a;
+    }
+
+    /* загально, привітання, прощання, розсилки => с белой рамкой,
+       а при активном состоянии => фон и рамка rgba(0, 74, 163, 1) */
+    .tab[data-type="all"],
+    .tab[data-type="greetings"],
+    .tab[data-type="goodbyes"],
+    .tab[data-type="mailings"] {
+      border-color: rgba(255, 255, 255, 1);
+    }
+    .tab.active[data-type="all"],
+    .tab.active[data-type="greetings"],
+    .tab.active[data-type="goodbyes"],
+    .tab.active[data-type="mailings"] {
+      background-color: rgba(0, 74, 163, 1);
+      border-color: rgba(0, 74, 163, 1);
+      color: #ffffff;
     }
 
     @media (max-width: 768px) {
-      .stats-number {
-        font-size: 56px;
-      }
-      .section-block {
-        padding: 16px;
-      }
       .chart-placeholder {
-        height: 220px;
+        height: 320px;
+      }
+      .stats-number {
+        font-size: 48px;
       }
       .tab {
-        padding: 8px 16px;
-        font-size: 15px;
+        font-size: 16px;
       }
     }
-
     @media (max-width: 480px) {
-      .tabs {
-        gap: 6px;
+      .chart-placeholder {
+        height: 280px;
       }
       .tab {
-        padding: 7px 14px;
         font-size: 14px;
       }
     }
@@ -236,56 +354,74 @@
 </head>
 <body>
   <div class="container">
+    <!-- Кнопка выбора бота -->
     <div class="bot-dropdown-container">
       <button class="bot-dropdown-btn" id="botDropdownBtn">
         <img src="static/templates/logo.png" alt="Logo" class="bot-logo" />
         Ваш бот
-        <span class="arrow">▾</span>
+        <div class="arrow-shape"></div>
       </button>
       <ul class="bot-dropdown-menu" id="botDropdownMenu"></ul>
     </div>
 
+    <!-- Число пользователей + подпись -->
     <div class="stats-text">
       <div class="stats-number" id="botTotalUsers">--</div>
       <div class="stats-subtitle" id="botSubtitle">користувачів @some_bot</div>
     </div>
 
+    <!-- Первый график: Приріст користувачів + кнопка выбора дублёров -->
     <section class="section-block">
-      <h2 class="section-title">Приріст користувачів</h2>
+      <div class="chart-header">
+        <h2 class="section-title">Приріст користувачів</h2>
+        <div class="mirror-dropdown-container">
+          <button class="mirror-dropdown-btn" id="mirrorDropdownBtn">
+            загально
+            <div class="arrow-shape" style="right: 8px;"></div>
+          </button>
+          <ul class="mirror-dropdown-menu" id="mirrorDropdownMenu">
+            <!-- Будет наполняться динамически -->
+          </ul>
+        </div>
+      </div>
+      <div class="chart-scroll">
+        <div class="chart-placeholder" id="usersChartPlaceholder"></div>
+      </div>
       <div class="tabs-group">
-        <div class="tabs top-tabs" id="userIntervalTabs">
+        <div class="tabs" id="userIntervalTabs">
           <button class="tab active" data-interval="day">доба</button>
           <button class="tab" data-interval="week">тиждень</button>
         </div>
-        <div class="tabs bottom-tabs" id="userTypeTabs">
+        <div class="tabs" id="userTypeTabs">
           <button class="tab active" data-type="all">загально</button>
           <button class="tab" data-type="active">живих</button>
           <button class="tab" data-type="inactive">неактивних</button>
         </div>
       </div>
-      <div class="chart-placeholder" id="usersChartPlaceholder"></div>
     </section>
 
+    <!-- Второй график: Повідомлень відправлено -->
     <section class="section-block">
       <h2 class="section-title">Повідомлень відправлено</h2>
+      <div class="chart-scroll">
+        <div class="chart-placeholder" id="messagesChartPlaceholder"></div>
+      </div>
       <div class="tabs-group">
-        <div class="tabs top-tabs" id="messageIntervalTabs">
+        <div class="tabs" id="messageIntervalTabs">
           <button class="tab active" data-interval="day">доба</button>
           <button class="tab" data-interval="week">тиждень</button>
         </div>
-        <div class="tabs bottom-tabs" id="messageTypeTabs">
+        <div class="tabs" id="messageTypeTabs">
           <button class="tab active" data-type="greetings">привітання</button>
           <button class="tab" data-type="goodbyes">прощання</button>
           <button class="tab" data-type="mailings">розсилки</button>
         </div>
       </div>
-      <div class="chart-placeholder" id="messagesChartPlaceholder"></div>
     </section>
   </div>
 
   <script>
-    let userId = 123;
-    let selectedBotId = 123;
+    let selectedBotId = null;
     let userInterval = "day";
     let userType = "all";
     let messageInterval = "day";
@@ -293,31 +429,57 @@
 
     const botDropdownBtn = document.getElementById('botDropdownBtn');
     const botDropdownMenu = document.getElementById('botDropdownMenu');
+    const mirrorDropdownBtn = document.getElementById('mirrorDropdownBtn');
+    const mirrorDropdownMenu = document.getElementById('mirrorDropdownMenu');
 
-    botDropdownBtn.addEventListener('click', function(event) {
-      botDropdownMenu.style.display =
-        botDropdownMenu.style.display === 'block' ? 'none' : 'block';
-      botDropdownBtn.classList.toggle('active');
+    // ===== Вспомогательные функции =====
+    function formatHour(h) {
+      // Уберём ":00", просто возвращаем h
+      return h.toString();
+    }
+    function formatDate(dateStr) {
+      // "2025-01-25T00:00:00" -> "25 Jan"
+      const d = new Date(dateStr);
+      const day = d.getDate();
+      const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      const mon = monthNames[d.getMonth()];
+      return day + ' ' + mon; // без года
+    }
+
+    // ===== Кнопка выбора бота =====
+    botDropdownBtn.addEventListener('click', (event) => {
       event.stopPropagation();
+      botDropdownMenu.classList.toggle('open');
+      botDropdownBtn.classList.toggle('active');
     });
-
-    document.addEventListener('click', function() {
-      botDropdownMenu.style.display = 'none';
+    document.addEventListener('click', () => {
+      botDropdownMenu.classList.remove('open');
       botDropdownBtn.classList.remove('active');
     });
 
+    // ===== Кнопка выбора дублёров =====
+    mirrorDropdownBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      mirrorDropdownMenu.classList.toggle('open');
+    });
+    document.addEventListener('click', () => {
+      mirrorDropdownMenu.classList.remove('open');
+    });
+
+    // ===== Выбор бота из списка =====
     function onBotSelected(botInfo) {
       selectedBotId = botInfo.bot_id;
       botDropdownBtn.innerHTML = `
         <img src="static/templates/logo.png" alt="Logo" class="bot-logo" />
-        ${botInfo.bot_link}
-        <span class="arrow">▾</span>
+        Ваш бот
+        <div class="arrow-shape"></div>
       `;
       updateBotStats(botInfo);
       fetchAndDrawUsersChart();
       fetchAndDrawMessagesChart();
     }
 
+    // ===== Обновление статистики бота =====
     function updateBotStats(botInfo) {
       const botTotalUsers = document.getElementById('botTotalUsers');
       const botSubtitle = document.getElementById('botSubtitle');
@@ -325,37 +487,77 @@
       botSubtitle.textContent = `користувачів ${botInfo.bot_link}`;
     }
 
+    // ===== Инициализация страницы (список ботов) =====
     function initPage() {
-      fetch(`/home?user_id=${userId}`)
-      .then(response => response.json())
-      .then(data => {
-        if (data.error) {
-          console.error('Error fetching homepage data:', data.error);
-          return;
-        }
+      let tgUserId = null;
+      if (typeof Telegram !== 'undefined'
+          && Telegram.WebApp
+          && Telegram.WebApp.initDataUnsafe
+          && Telegram.WebApp.initDataUnsafe.user) {
+        tgUserId = Telegram.WebApp.initDataUnsafe.user.id;
+      }
 
-        if (data.bot_list && Array.isArray(data.bot_list)) {
-          botDropdownMenu.innerHTML = '';
-          data.bot_list.forEach(botItem => {
-            const li = document.createElement('li');
-            li.textContent = botItem.bot_link;
-            li.addEventListener('click', () => onBotSelected(botItem));
-            botDropdownMenu.appendChild(li);
-          });
-        }
+      // Фолбэк для теста
+      if (!tgUserId) {
+        console.warn("No Telegram user ID found; using 205159314 for local test.");
+        tgUserId = 205159314;
+      }
 
-        if (data.default_bot) {
-          onBotSelected(data.default_bot);
-        }
-      })
-      .catch(err => {
-        console.error('Error:', err);
-      });
+      fetch(`/home?user_id=${tgUserId}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.error) {
+            console.error('Error fetching homepage data:', data.error);
+            return;
+          }
+
+          // Заполняем список ботов
+          if (data.bot_list && Array.isArray(data.bot_list)) {
+            botDropdownMenu.innerHTML = '';
+            data.bot_list.forEach(botItem => {
+              const li = document.createElement('li');
+              li.textContent = botItem.bot_link;
+              li.addEventListener('click', () => onBotSelected(botItem));
+              botDropdownMenu.appendChild(li);
+            });
+            // Кнопка "закрити"
+            const liClose = document.createElement('li');
+            liClose.textContent = 'закрити';
+            liClose.classList.add('close-btn');
+            liClose.addEventListener('click', () => {
+              botDropdownMenu.classList.remove('open');
+              botDropdownBtn.classList.remove('active');
+            });
+            botDropdownMenu.appendChild(liClose);
+          }
+
+          // Заполняем меню дублёров (mirror) если есть
+          if (data.mirrors && Array.isArray(data.mirrors)) {
+            data.mirrors.forEach(mirror => {
+              const li = document.createElement('li');
+              li.textContent = mirror.title;
+              li.addEventListener('click', () => {
+                mirrorDropdownMenu.classList.remove('open');
+                mirrorDropdownBtn.textContent = mirror.title;
+              });
+              mirrorDropdownMenu.appendChild(li);
+            });
+          }
+
+          if (data.default_bot) {
+            onBotSelected(data.default_bot);
+          }
+        })
+        .catch(err => {
+          console.error('Error:', err);
+        });
     }
 
+    // ===== Запрос и рендер графика пользователей =====
     function fetchAndDrawUsersChart() {
+      if (!selectedBotId) return;
       const placeholder = document.getElementById('usersChartPlaceholder');
-      placeholder.textContent = 'Завантаження...';
+      placeholder.innerHTML = ''; // убираем текст/загрузку
       fetch(`/users/${selectedBotId}/${userType}/${userInterval}`)
         .then(r => r.json())
         .then(usersData => {
@@ -371,9 +573,11 @@
         });
     }
 
+    // ===== Запрос и рендер графика сообщений =====
     function fetchAndDrawMessagesChart() {
+      if (!selectedBotId) return;
       const placeholder = document.getElementById('messagesChartPlaceholder');
-      placeholder.textContent = 'Завантаження...';
+      placeholder.innerHTML = '';
       fetch(`/messages/${selectedBotId}/${messageType}/${messageInterval}`)
         .then(r => r.json())
         .then(messagesData => {
@@ -389,111 +593,250 @@
         });
     }
 
+    // ===== Рендер графика пользователей =====
     function drawUsersChart(usersData) {
       const placeholderId = 'usersChartPlaceholder';
-      const placeholder = document.getElementById(placeholderId);
-
       if (!usersData.users) {
-        placeholder.textContent = 'Дані недоступні';
+        document.getElementById(placeholderId).textContent = 'Дані недоступні';
         return;
       }
 
-      // Подготовим массив x и два массива y (активные/неактивные)
+      /* Проверяем, если day -> делаем ширину побольше (для скролла),
+         если week -> ставим auto (или 100%). */
+      const chartContainer = document.getElementById(placeholderId);
+      if (userInterval === 'day') {
+        chartContainer.style.width = '800px';  // или 900px
+      } else {
+        chartContainer.style.width = '100%';
+      }
+
       const xArray = [];
       const yActive = [];
       const yInactive = [];
 
       usersData.users.forEach(item => {
-        // Если есть hour, делаем подпись "hour:XX". Если date, берем date
         if (item.hour !== undefined) {
-          xArray.push(`hour:${item.hour}`);
+          xArray.push(formatHour(item.hour));
         } else if (item.date) {
-          xArray.push(item.date);
+          xArray.push(formatDate(item.date));
         } else {
-          xArray.push("???");
+          xArray.push("??");
         }
         yActive.push(item.active);
         yInactive.push(item.inactive);
       });
 
+      // зелёный для живих, красный (rgba(208,93,91,1)) для неактивних
       const traceActive = {
         x: xArray,
         y: yActive,
-        name: "Active Users",
         mode: "lines+markers",
-        type: "scatter"
+        type: "scatter",
+        line: {color: "rgba(122, 194, 96, 1)"},
+        marker: {color: "rgba(122, 194, 96, 1)"},
+        hoverinfo: "x+y"
       };
-
       const traceInactive = {
         x: xArray,
         y: yInactive,
-        name: "Inactive Users",
         mode: "lines+markers",
-        type: "scatter"
+        type: "scatter",
+        line: {color: "rgba(208, 93, 91, 1)"},
+        marker: {color: "rgba(208, 93, 91, 1)"},
+        hoverinfo: "x+y"
       };
 
       const layout = {
-        title: "User Stats",
+        margin: {l: 40, r: 20, t: 0, b: 30},
         paper_bgcolor: "#19212a",
         plot_bgcolor: "#19212a",
         font: { color: "#eaeaea" },
-        xaxis: { zeroline: false },
-        yaxis: { zeroline: false }
+        showlegend: false,
+        hovermode: 'closest',
+        dragmode: false, /* отключаем масштабирование/перетаскивание */
+        xaxis: {
+          tickfont: { color: "#eaeaea" },
+          tickangle: 0,
+          showline: false,
+          showgrid: false,
+          zeroline: false
+        },
+        yaxis: {
+          tickfont: { color: "#eaeaea" },
+          showline: false,
+          showgrid: false,
+          zeroline: false
+        }
       };
 
-      Plotly.newPlot(placeholderId, [traceActive, traceInactive], layout);
+      const config = {
+        displayModeBar: false,
+        scrollZoom: false,
+        staticPlot: false,
+        responsive: true
+      };
+
+      Plotly.newPlot(placeholderId, [traceActive, traceInactive], layout, config);
     }
 
+    // ===== Рендер графика сообщений =====
     function drawMessagesChart(messagesData) {
       const placeholderId = 'messagesChartPlaceholder';
-      const placeholder = document.getElementById(placeholderId);
-
       if (!messagesData.messages) {
-        placeholder.textContent = 'Дані недоступні';
+        document.getElementById(placeholderId).textContent = 'Дані недоступні';
         return;
       }
 
-      // Для простоты отрисуем один ряд "total"
+      /* Аналогично проверяем интервал для ширины */
+      const chartContainer = document.getElementById(placeholderId);
+      if (messageInterval === 'day') {
+        chartContainer.style.width = '800px';
+      } else {
+        chartContainer.style.width = '100%';
+      }
+
       const xArray = [];
-      const yTotal = [];
+      if (messageType === "mailings") {
+        /* Стековые бары (active+inactive) */
+        const yActive = [];
+        const yInactive = [];
 
-      messagesData.messages.forEach(item => {
-        if (item.hour !== undefined) {
-          xArray.push(`hour:${item.hour}`);
-        } else if (item.date) {
-          xArray.push(item.date);
-        } else {
-          xArray.push("???");
+        messagesData.messages.forEach(item => {
+          if (item.hour !== undefined) {
+            xArray.push(formatHour(item.hour));
+          } else if (item.date) {
+            xArray.push(formatDate(item.date));
+          } else {
+            xArray.push("??");
+          }
+          yActive.push(item.active || 0);
+          yInactive.push(item.inactive || 0);
+        });
+
+        // зелёный для active, красный (rgba(208,93,91,1)) для inactive
+        const traceActive = {
+          x: xArray,
+          y: yActive,
+          name: "Живі",
+          type: "bar",
+          marker: { color: "rgba(122, 194, 96, 1)" },
+          hoverinfo: "x+y"
+        };
+        const traceInactive = {
+          x: xArray,
+          y: yInactive,
+          name: "Неактивні",
+          type: "bar",
+          marker: { color: "rgba(208, 93, 91, 1)" },
+          hoverinfo: "x+y"
+        };
+        const layout = {
+          margin: {l: 40, r: 20, t: 0, b: 30},
+          paper_bgcolor: "#19212a",
+          plot_bgcolor: "#19212a",
+          font: { color: "#eaeaea" },
+          showlegend: false,
+          hovermode: 'closest',
+          dragmode: false,
+          barmode: "stack", /* суммируем в одном столбце */
+          xaxis: {
+            tickfont: { color: "#eaeaea" },
+            tickangle: 0,
+            showline: false,
+            showgrid: false,
+            zeroline: false
+          },
+          yaxis: {
+            tickfont: { color: "#eaeaea" },
+            showline: false,
+            showgrid: false,
+            zeroline: false
+          }
+        };
+        const config = {
+          displayModeBar: false,
+          scrollZoom: false,
+          staticPlot: false,
+          responsive: true
+        };
+        Plotly.newPlot(placeholderId, [traceActive, traceInactive], layout, config);
+      }
+      else {
+        // greetings / goodbyes -> линии
+        const yLine = [];
+        messagesData.messages.forEach(item => {
+          if (item.hour !== undefined) {
+            xArray.push(formatHour(item.hour));
+          } else if (item.date) {
+            xArray.push(formatDate(item.date));
+          } else {
+            xArray.push("??");
+          }
+          yLine.push(item.total || 0);
+        });
+
+        // greetings -> зелёный, goodbyes -> красный
+        let lineColor = "rgba(122, 194, 96, 1)"; // зелёный
+        if (messageType === "goodbyes") {
+          lineColor = "rgba(208, 93, 91, 1)"; // красный
         }
-        yTotal.push(item.total);
-      });
-
-      const trace = {
-        x: xArray,
-        y: yTotal,
-        name: "Total Messages",
-        type: "bar"
-      };
-
-      const layout = {
-        title: "Messages Stats",
-        paper_bgcolor: "#19212a",
-        plot_bgcolor: "#19212a",
-        font: { color: "#eaeaea" },
-        xaxis: { zeroline: false },
-        yaxis: { zeroline: false }
-      };
-
-      Plotly.newPlot(placeholderId, [trace], layout);
+        const trace = {
+          x: xArray,
+          y: yLine,
+          mode: "lines+markers",
+          type: "scatter",
+          line: { color: lineColor },
+          marker: { color: lineColor },
+          hoverinfo: "x+y"
+        };
+        const layout = {
+          margin: {l: 40, r: 20, t: 0, b: 30},
+          paper_bgcolor: "#19212a",
+          plot_bgcolor: "#19212a",
+          font: { color: "#eaeaea" },
+          showlegend: false,
+          hovermode: 'closest',
+          dragmode: false,
+          xaxis: {
+            tickfont: { color: "#eaeaea" },
+            tickangle: 0,
+            showline: false,
+            showgrid: false,
+            zeroline: false
+          },
+          yaxis: {
+            tickfont: { color: "#eaeaea" },
+            showline: false,
+            showgrid: false,
+            zeroline: false
+          }
+        };
+        const config = {
+          displayModeBar: false,
+          scrollZoom: false,
+          staticPlot: false,
+          responsive: true
+        };
+        Plotly.newPlot(placeholderId, [trace], layout, config);
+      }
     }
 
+    // ===== Привязка кликов на кнопки фильтров =====
     document.addEventListener('DOMContentLoaded', () => {
       initPage();
 
-      const userIntervalTabs = document.getElementById('userIntervalTabs').querySelectorAll('.tab');
-      const userTypeTabs = document.getElementById('userTypeTabs').querySelectorAll('.tab');
-      const messageIntervalTabs = document.getElementById('messageIntervalTabs').querySelectorAll('.tab');
-      const messageTypeTabs = document.getElementById('messageTypeTabs').querySelectorAll('.tab');
+      const userIntervalTabs = document
+        .getElementById('userIntervalTabs')
+        .querySelectorAll('.tab');
+      const userTypeTabs = document
+        .getElementById('userTypeTabs')
+        .querySelectorAll('.tab');
+      const messageIntervalTabs = document
+        .getElementById('messageIntervalTabs')
+        .querySelectorAll('.tab');
+      const messageTypeTabs = document
+        .getElementById('messageTypeTabs')
+        .querySelectorAll('.tab');
 
       userIntervalTabs.forEach(tab => {
         tab.addEventListener('click', () => {
