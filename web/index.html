@@ -1,41 +1,25 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Статистика бота</title>
 
-  <!-- Подключаем Plotly -->
+  <!-- Plotly -->
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
-  <!-- Шрифты Euclid Circular A и Inter (пример с локальными файлами) -->
+  <!-- Шрифты -->
   <style>
-    /* Если шрифты недоступны, будет fallback */
     @font-face {
       font-family: 'Euclid Circular A';
-      src: url('static/fonts/EuclidCircularA-Regular.woff2') format('woff2'),
-           url('static/fonts/EuclidCircularA-Regular.woff') format('woff');
+      src: url('static/fonts/EuclidCircularA-Regular.woff2') format('woff2');
       font-weight: 400;
       font-style: normal;
     }
     @font-face {
-      font-family: 'Euclid Circular A';
-      src: url('static/fonts/EuclidCircularA-Medium.woff2') format('woff2'),
-           url('static/fonts/EuclidCircularA-Medium.woff') format('woff');
-      font-weight: 500;
-      font-style: normal;
-    }
-    @font-face {
-      font-family: 'Euclid Circular A';
-      src: url('static/fonts/EuclidCircularA-Bold.woff2') format('woff2'),
-           url('static/fonts/EuclidCircularA-Bold.woff') format('woff');
-      font-weight: 700;
-      font-style: normal;
-    }
-    @font-face {
       font-family: 'Inter';
-      src: url('static/fonts/Inter-Bold.woff2') format('woff2');
-      font-weight: 700;
+      src: url('static/fonts/Inter-Regular.woff2') format('woff2');
+      font-weight: 400;
       font-style: normal;
     }
 
@@ -47,122 +31,147 @@
     }
     html, body {
       height: 100%;
-      background-color: #19212a;
+      background-color: #1c2229;
       color: #eaeaea;
       font-size: 14px;
       line-height: 1.5;
       font-family: 'Euclid Circular A', Arial, sans-serif;
     }
+
     .container {
       max-width: 900px;
       margin: 0 auto;
       padding: 20px 16px;
-      text-align: center; /* Кнопка выбора бота по центру */
+      text-align: center;
     }
 
-    /* ===== Кнопка выбора бота (логотип, надпись, псевдо-«стрелка») ===== */
+    /* ===== Кнопка выбора бота («Ваш бот») ===== */
     .bot-dropdown-container {
       position: relative;
       display: inline-block;
       margin-bottom: 24px;
     }
     .bot-dropdown-btn {
-      position: relative; /* чтобы .arrow-shape можно было позиционировать */
+      position: relative;
       display: inline-flex;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start; /* текст левее */
       background-color: #2A3342;
       color: #eaeaea;
       border: none;
-      border-radius: 30px;
+      border-radius: 24px;
       cursor: pointer;
       min-width: 220px;
-      padding: 12px 20px;
-      font-family: 'Euclid Circular A';
+      padding: 10px 20px;
+
+      font-family: 'Euclid Circular A', Arial, sans-serif;
       font-weight: 500;
       font-size: 20px;
       line-height: 100%;
       letter-spacing: 0%;
     }
-    /* Логотип бота */
-    .bot-dropdown-btn .bot-logo {
+    .bot-logo {
       width: 28px;
       height: 28px;
       margin-right: 10px;
     }
-    /* Псевдо-«стрелка» (Vector 181), сейчас это треугольник-галочка */
     .arrow-shape {
       position: absolute;
-      width: 6px;
-      height: 6px;
+      width: 12px;
+      height: 12px;
       top: 50%;
       right: 16px;
       transform: translateY(-50%) rotate(45deg);
       opacity: 0.7;
-      border-right: 2px solid rgba(255, 255, 255, 0.53);
-      border-bottom: 2px solid rgba(255, 255, 255, 0.53);
+      border-right: 2px solid rgba(255,255,255,0.53);
+      border-bottom: 2px solid rgba(255,255,255,0.53);
     }
     .bot-dropdown-btn.active {
       background-color: #004aa3;
     }
 
-    /* Выпадающее меню для списка ботов */
+    /* Меню «Ваш бот» (bottom sheet) */
     .bot-dropdown-menu {
-      position: absolute;
-      top: calc(100% + 4px);
+      position: fixed;
+      bottom: 0;
       left: 0;
       width: 100%;
+      height: 33vh;
       background-color: #262626;
-      border: 1px solid #3a3a3a;
-      border-radius: 6px;
-      list-style: none;
-      max-height: 250px;
-      overflow-y: auto;
-      opacity: 0;
-      transform: translateY(-5px);
-      transition: opacity 0.2s ease, transform 0.2s ease;
-      pointer-events: none;
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
+      transform: translateY(100%);
+      transition: transform 0.3s ease-out;
       z-index: 999;
+      overflow-y: auto;
+      padding: 16px;
     }
     .bot-dropdown-menu.open {
-      opacity: 1;
       transform: translateY(0);
-      pointer-events: auto;
+    }
+    .bot-dropdown-menu h3 {
+      font-family: 'Euclid Circular A', Arial, sans-serif;
+      font-weight: 400;
+      font-size: 18px;
+      margin-bottom: 12px;
+      text-align: left;
+    }
+    .bot-dropdown-menu ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
     }
     .bot-dropdown-menu li {
-      padding: 10px 16px;
+      padding: 10px 8px;
       cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
     .bot-dropdown-menu li:hover {
       background-color: #3a3a3a;
     }
-    .bot-dropdown-menu li.close-btn {
+    .bot-dropdown-menu li .checkmark {
+      display: none;
+      margin-left: 8px;
+      color: #7AC260;
+    }
+    .bot-dropdown-menu li.active .checkmark {
+      display: inline;
+    }
+    .bot-dropdown-menu .close-btn {
+      margin-top: 12px;
       text-align: center;
+      border: 1px solid #3a3a3a;
+      border-radius: 12px;
+      padding: 8px;
       font-size: 14px;
-      font-weight: 400;
-      color: #eaeaea;
+      background-color: #2c2c2c;
+    }
+    .bot-dropdown-menu .close-btn:hover {
+      background-color: #3a3a3a;
     }
 
-    /* ===== Статистика (число и подпись) ===== */
+    /* ===== Блок статистики (число пользователей) ===== */
     .stats-text {
       text-align: center;
       margin-bottom: 30px;
     }
     .stats-number {
-      font-family: 'Euclid Circular A';
+      font-family: 'Euclid Circular A', Arial, sans-serif;
       font-weight: 500;
-      font-size: 64px;
+      font-size: 72px; /* крупнее */
       line-height: 100%;
       letter-spacing: 0%;
       color: #ffffff;
-      font-feature-settings: 'tnum' 1, 'lnum' 1;
+      margin-top: 10px;
     }
     .stats-subtitle {
-      font-family: 'Euclid Circular A';
+      font-family: 'Euclid Circular A', Arial, sans-serif;
       font-weight: 400;
-      font-size: 18px;
-      line-height: 100%;
-      letter-spacing: 0%;
+      font-size: 16px;
       color: #b5b5b5;
       margin-top: 4px;
     }
@@ -170,13 +179,11 @@
     /* ===== Секции графиков ===== */
     .section-block {
       margin-bottom: 40px;
-      background-color: #19212a;
-      border-radius: 8px;
+      background-color: #232a33;
+      border-radius: 10px;
       padding: 24px;
       text-align: left;
     }
-
-    /* Заголовок над первым графиком */
     .chart-header {
       display: flex;
       justify-content: space-between;
@@ -184,15 +191,14 @@
       margin-bottom: 16px;
     }
     .section-title {
-      font-family: 'Inter';
-      font-weight: 700;
-      font-size: 21px;
-      line-height: 100%;
-      margin: 0;
+      font-family: 'Inter', Arial, sans-serif;
+      font-weight: 400;
+      font-size: 18px;
       color: #ffffff;
+      margin: 0;
     }
 
-    /* Кнопка выбора дублёров (справа) */
+    /* Кнопка выбора дублёров */
     .mirror-dropdown-container {
       position: relative;
     }
@@ -203,65 +209,97 @@
       background-color: #2A3342;
       color: #eaeaea;
       border: none;
-      border-radius: 20px;
+      border-radius: 16px;
       cursor: pointer;
       padding: 8px 16px;
-      font-family: 'Euclid Circular A';
+      font-family: 'Euclid Circular A', Arial, sans-serif;
       font-weight: 400;
       font-size: 14px;
       line-height: 100%;
-      letter-spacing: 0%;
+      justify-content: flex-start;
+      min-width: 120px;
     }
     .mirror-dropdown-btn .arrow-shape {
-      width: 5px;
-      height: 5px;
-      right: 8px;
-      border-right: 2px solid rgba(255, 255, 255, 0.53);
-      border-bottom: 2px solid rgba(255, 255, 255, 0.53);
+      width: 12px;
+      height: 12px;
+      right: 10px;
     }
     .mirror-dropdown-menu {
-      position: absolute;
-      top: calc(100% + 4px);
-      right: 0;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 33vh;
       background-color: #262626;
-      border: 1px solid #3a3a3a;
-      border-radius: 6px;
-      list-style: none;
-      max-height: 200px;
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
+      transform: translateY(100%);
+      transition: transform 0.3s ease-out;
+      z-index: 998;
       overflow-y: auto;
-      opacity: 0;
-      transform: translateY(-5px);
-      transition: opacity 0.2s ease, transform 0.2s ease;
-      pointer-events: none;
-      z-index: 999;
-      width: 150px;
+      padding: 16px;
     }
     .mirror-dropdown-menu.open {
-      opacity: 1;
       transform: translateY(0);
-      pointer-events: auto;
+    }
+    .mirror-dropdown-menu h3 {
+      font-family: 'Euclid Circular A', Arial, sans-serif;
+      font-weight: 400;
+      font-size: 18px;
+      margin-bottom: 12px;
+      text-align: left;
+    }
+    .mirror-dropdown-menu ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
     }
     .mirror-dropdown-menu li {
-      padding: 8px 12px;
+      padding: 10px 8px;
       cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
     .mirror-dropdown-menu li:hover {
       background-color: #3a3a3a;
     }
+    .mirror-dropdown-menu li .checkmark {
+      display: none;
+      margin-left: 8px;
+      color: #7AC260;
+    }
+    .mirror-dropdown-menu li.active .checkmark {
+      display: inline;
+    }
+    .mirror-dropdown-menu .close-btn {
+      margin-top: 12px;
+      text-align: center;
+      border: 1px solid #3a3a3a;
+      border-radius: 12px;
+      padding: 8px;
+      font-size: 14px;
+      background-color: #2c2c2c;
+    }
+    .mirror-dropdown-menu .close-btn:hover {
+      background-color: #3a3a3a;
+    }
 
-    /* Контейнер для графика (чтобы можно было скроллить при 24 часах) */
+    /* Контейнер для графиков без горизонтального скролла */
     .chart-scroll {
       width: 100%;
-      overflow-x: auto;
+      overflow-x: hidden;
     }
-    /* Сам график */
     .chart-placeholder {
       height: 400px;
-      background-color: #19212a;
+      background-color: #232a33;
       margin: 0 auto;
+      width: 100%;
     }
 
-    /* Фильтры */
+    /* ===== Табы (фильтры) ===== */
     .tabs-group {
       margin-top: 16px;
       display: flex;
@@ -274,17 +312,15 @@
     }
     .tab {
       cursor: pointer;
-      padding: 8px 16px;
-      border-radius: 20px;
+      padding: 8px 20px;
+      border-radius: 16px;
       background-color: transparent;
-      border: 1px solid #3a3a3a;
       color: #eaeaea;
-      transition: background-color 0.2s, border-color 0.2s;
-      font-family: 'Euclid Circular A';
-      font-weight: 400;
-      font-size: 18px;
+      font-family: 'Euclid Circular A', Arial, sans-serif;
+      font-size: 14px;
       line-height: 100%;
-      letter-spacing: 0%;
+      border: 1px solid #3a3a3a;
+      transition: background-color 0.2s, border-color 0.2s;
     }
     .tab:hover {
       background-color: #2c2c2c;
@@ -293,41 +329,63 @@
       background-color: #2c2c2c;
     }
 
-    /* ===== Новые цвета ===== */
-    /* «живих» (active) => зелёный */
+    /* Табы «доба / тиждень» (серые рамки) */
+    .tab[data-interval="day"],
+    .tab[data-interval="week"] {
+      border-color: #3a3a3a;
+    }
+
+    /* «загально» / «живих» / «неактивних» */
+    .tab[data-type="all"] {
+      border-color: rgba(0,74,163,1);
+    }
+    .tab.active[data-type="all"] {
+      background-color: rgba(0,74,163,1);
+      border-color: rgba(0,74,163,1);
+      color: #ffffff;
+    }
+
     .tab[data-type="active"] {
-      border-color: rgba(122, 194, 96, 1);
+      border-color: rgba(122,194,96,1);
     }
     .tab.active[data-type="active"] {
-      background-color: rgba(122, 194, 96, 1);
-      border-color: rgba(122, 194, 96, 1);
+      background-color: rgba(122,194,96,1);
+      border-color: rgba(122,194,96,1);
       color: #19212a;
     }
 
-    /* «неактивних» (inactive) => красный (rgba(208,93,91,1) ) */
     .tab[data-type="inactive"] {
-      border-color: rgba(208, 93, 91, 1);
+      border-color: rgba(208,93,91,1);
     }
     .tab.active[data-type="inactive"] {
-      background-color: rgba(208, 93, 91, 1);
-      border-color: rgba(208, 93, 91, 1);
+      background-color: rgba(208,93,91,1);
+      border-color: rgba(208,93,91,1);
       color: #19212a;
     }
 
-    /* загально, привітання, прощання, розсилки => с белой рамкой,
-       а при активном состоянии => фон и рамка rgba(0, 74, 163, 1) */
-    .tab[data-type="all"],
-    .tab[data-type="greetings"],
-    .tab[data-type="goodbyes"],
-    .tab[data-type="mailings"] {
-      border-color: rgba(255, 255, 255, 1);
+    /* «привітання / прощання / розсилки» */
+    .tab[data-type="greetings"] {
+      border-color: rgba(122,194,96,1);
     }
-    .tab.active[data-type="all"],
-    .tab.active[data-type="greetings"],
-    .tab.active[data-type="goodbyes"],
+    .tab.active[data-type="greetings"] {
+      background-color: rgba(122,194,96,1);
+      border-color: rgba(122,194,96,1);
+      color: #19212a;
+    }
+    .tab[data-type="goodbyes"] {
+      border-color: rgba(208,93,91,1);
+    }
+    .tab.active[data-type="goodbyes"] {
+      background-color: rgba(208,93,91,1);
+      border-color: rgba(208,93,91,1);
+      color: #19212a;
+    }
+    .tab[data-type="mailings"] {
+      border-color: rgba(0,74,163,1);
+    }
     .tab.active[data-type="mailings"] {
-      background-color: rgba(0, 74, 163, 1);
-      border-color: rgba(0, 74, 163, 1);
+      background-color: rgba(0,74,163,1);
+      border-color: rgba(0,74,163,1);
       color: #ffffff;
     }
 
@@ -336,24 +394,25 @@
         height: 320px;
       }
       .stats-number {
-        font-size: 48px;
-      }
-      .tab {
-        font-size: 16px;
+        font-size: 56px;
       }
     }
     @media (max-width: 480px) {
       .chart-placeholder {
         height: 280px;
       }
+      .stats-number {
+        font-size: 44px;
+      }
       .tab {
-        font-size: 14px;
+        font-size: 13px;
       }
     }
   </style>
 </head>
 <body>
   <div class="container">
+
     <!-- Кнопка выбора бота -->
     <div class="bot-dropdown-container">
       <button class="bot-dropdown-btn" id="botDropdownBtn">
@@ -361,7 +420,12 @@
         Ваш бот
         <div class="arrow-shape"></div>
       </button>
-      <ul class="bot-dropdown-menu" id="botDropdownMenu"></ul>
+    </div>
+    <!-- Bottom sheet «Ваш бот» -->
+    <div class="bot-dropdown-menu" id="botDropdownMenu">
+      <h3>Оберіть бота</h3>
+      <ul id="botList"></ul>
+      <div class="close-btn" id="botDropdownClose">Скасувати</div>
     </div>
 
     <!-- Число пользователей + подпись -->
@@ -377,16 +441,21 @@
         <div class="mirror-dropdown-container">
           <button class="mirror-dropdown-btn" id="mirrorDropdownBtn">
             загально
-            <div class="arrow-shape" style="right: 8px;"></div>
+            <div class="arrow-shape"></div>
           </button>
-          <ul class="mirror-dropdown-menu" id="mirrorDropdownMenu">
-            <!-- Будет наполняться динамически -->
-          </ul>
         </div>
       </div>
+      <!-- Bottom sheet «дублёры» -->
+      <div class="mirror-dropdown-menu" id="mirrorDropdownMenu">
+        <h3>Оберіть дублера</h3>
+        <ul id="mirrorList"></ul>
+        <div class="close-btn" id="mirrorDropdownClose">Скасувати</div>
+      </div>
+
       <div class="chart-scroll">
         <div class="chart-placeholder" id="usersChartPlaceholder"></div>
       </div>
+
       <div class="tabs-group">
         <div class="tabs" id="userIntervalTabs">
           <button class="tab active" data-interval="day">доба</button>
@@ -406,6 +475,7 @@
       <div class="chart-scroll">
         <div class="chart-placeholder" id="messagesChartPlaceholder"></div>
       </div>
+
       <div class="tabs-group">
         <div class="tabs" id="messageIntervalTabs">
           <button class="tab active" data-interval="day">доба</button>
@@ -429,44 +499,58 @@
 
     const botDropdownBtn = document.getElementById('botDropdownBtn');
     const botDropdownMenu = document.getElementById('botDropdownMenu');
+    const botDropdownClose = document.getElementById('botDropdownClose');
+    const botListUL = document.getElementById('botList');
+
     const mirrorDropdownBtn = document.getElementById('mirrorDropdownBtn');
     const mirrorDropdownMenu = document.getElementById('mirrorDropdownMenu');
+    const mirrorDropdownClose = document.getElementById('mirrorDropdownClose');
+    const mirrorListUL = document.getElementById('mirrorList');
 
-    // ===== Вспомогательные функции =====
-    function formatHour(h) {
-      // Уберём ":00", просто возвращаем h
-      return h.toString();
-    }
+    // Украинские сокращённые месяцы
+    const ukrMonths = ["Січ","Лют","Бер","Кві","Тра","Чер","Лип","Сер","Вер","Жов","Лис","Гру"];
+
+    // Массив подписи по часам (только нечётные 1..23)
+    const oddHours = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23];
+
     function formatDate(dateStr) {
-      // "2025-01-25T00:00:00" -> "25 Jan"
       const d = new Date(dateStr);
       const day = d.getDate();
-      const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-      const mon = monthNames[d.getMonth()];
-      return day + ' ' + mon; // без года
+      const mon = ukrMonths[d.getMonth()] || "";
+      return day + ' ' + mon;
     }
 
-    // ===== Кнопка выбора бота =====
+    // Bottom sheet «Ваш бот»
     botDropdownBtn.addEventListener('click', (event) => {
       event.stopPropagation();
       botDropdownMenu.classList.toggle('open');
       botDropdownBtn.classList.toggle('active');
     });
-    document.addEventListener('click', () => {
+    botDropdownClose.addEventListener('click', () => {
       botDropdownMenu.classList.remove('open');
       botDropdownBtn.classList.remove('active');
     });
+    document.addEventListener('click', (ev) => {
+      if (!botDropdownMenu.contains(ev.target) && ev.target !== botDropdownBtn) {
+        botDropdownMenu.classList.remove('open');
+        botDropdownBtn.classList.remove('active');
+      }
+    });
 
-    // ===== Кнопка выбора дублёров =====
+    // Bottom sheet «дублёры»
     mirrorDropdownBtn.addEventListener('click', (event) => {
       event.stopPropagation();
       mirrorDropdownMenu.classList.toggle('open');
     });
-    document.addEventListener('click', () => {
+    mirrorDropdownClose.addEventListener('click', () => {
       mirrorDropdownMenu.classList.remove('open');
     });
+    document.addEventListener('click', (ev) => {
+      if (!mirrorDropdownMenu.contains(ev.target) && ev.target !== mirrorDropdownBtn) {
+        mirrorDropdownMenu.classList.remove('open');
+      }
+    });
 
-    // ===== Выбор бота из списка =====
     function onBotSelected(botInfo) {
       selectedBotId = botInfo.bot_id;
       botDropdownBtn.innerHTML = `
@@ -474,20 +558,19 @@
         Ваш бот
         <div class="arrow-shape"></div>
       `;
+      botDropdownMenu.classList.remove('open');
+      botDropdownBtn.classList.remove('active');
+
       updateBotStats(botInfo);
       fetchAndDrawUsersChart();
       fetchAndDrawMessagesChart();
     }
 
-    // ===== Обновление статистики бота =====
     function updateBotStats(botInfo) {
-      const botTotalUsers = document.getElementById('botTotalUsers');
-      const botSubtitle = document.getElementById('botSubtitle');
-      botTotalUsers.textContent = botInfo.total_users || '--';
-      botSubtitle.textContent = `користувачів ${botInfo.bot_link}`;
+      document.getElementById('botTotalUsers').textContent = botInfo.total_users || '--';
+      document.getElementById('botSubtitle').textContent = `користувачів ${botInfo.bot_link}`;
     }
 
-    // ===== Инициализация страницы (список ботов) =====
     function initPage() {
       let tgUserId = null;
       if (typeof Telegram !== 'undefined'
@@ -496,8 +579,6 @@
           && Telegram.WebApp.initDataUnsafe.user) {
         tgUserId = Telegram.WebApp.initDataUnsafe.user.id;
       }
-
-      // Фолбэк для теста
       if (!tgUserId) {
         console.warn("No Telegram user ID found; using 205159314 for local test.");
         tgUserId = 205159314;
@@ -510,37 +591,46 @@
             console.error('Error fetching homepage data:', data.error);
             return;
           }
-
-          // Заполняем список ботов
+          // Список ботов
           if (data.bot_list && Array.isArray(data.bot_list)) {
-            botDropdownMenu.innerHTML = '';
-            data.bot_list.forEach(botItem => {
+            botListUL.innerHTML = '';
+            data.bot_list.forEach((botItem) => {
               const li = document.createElement('li');
               li.textContent = botItem.bot_link;
-              li.addEventListener('click', () => onBotSelected(botItem));
-              botDropdownMenu.appendChild(li);
+
+              const checkSpan = document.createElement('span');
+              checkSpan.className = 'checkmark';
+              checkSpan.textContent = '✓';
+              li.appendChild(checkSpan);
+
+              li.addEventListener('click', () => {
+                botListUL.querySelectorAll('li').forEach(li2 => li2.classList.remove('active'));
+                li.classList.add('active');
+                onBotSelected(botItem);
+              });
+              botListUL.appendChild(li);
             });
-            // Кнопка "закрити"
-            const liClose = document.createElement('li');
-            liClose.textContent = 'закрити';
-            liClose.classList.add('close-btn');
-            liClose.addEventListener('click', () => {
-              botDropdownMenu.classList.remove('open');
-              botDropdownBtn.classList.remove('active');
-            });
-            botDropdownMenu.appendChild(liClose);
           }
 
-          // Заполняем меню дублёров (mirror) если есть
+          // Список дублёров
           if (data.mirrors && Array.isArray(data.mirrors)) {
-            data.mirrors.forEach(mirror => {
+            mirrorListUL.innerHTML = '';
+            data.mirrors.forEach((mirror) => {
               const li = document.createElement('li');
               li.textContent = mirror.title;
+
+              const checkSpan = document.createElement('span');
+              checkSpan.className = 'checkmark';
+              checkSpan.textContent = '✓';
+              li.appendChild(checkSpan);
+
               li.addEventListener('click', () => {
+                mirrorListUL.querySelectorAll('li').forEach(li2 => li2.classList.remove('active'));
+                li.classList.add('active');
                 mirrorDropdownMenu.classList.remove('open');
                 mirrorDropdownBtn.textContent = mirror.title;
               });
-              mirrorDropdownMenu.appendChild(li);
+              mirrorListUL.appendChild(li);
             });
           }
 
@@ -553,11 +643,10 @@
         });
     }
 
-    // ===== Запрос и рендер графика пользователей =====
     function fetchAndDrawUsersChart() {
       if (!selectedBotId) return;
       const placeholder = document.getElementById('usersChartPlaceholder');
-      placeholder.innerHTML = ''; // убираем текст/загрузку
+      placeholder.innerHTML = '';
       fetch(`/users/${selectedBotId}/${userType}/${userInterval}`)
         .then(r => r.json())
         .then(usersData => {
@@ -573,7 +662,6 @@
         });
     }
 
-    // ===== Запрос и рендер графика сообщений =====
     function fetchAndDrawMessagesChart() {
       if (!selectedBotId) return;
       const placeholder = document.getElementById('messagesChartPlaceholder');
@@ -593,7 +681,7 @@
         });
     }
 
-    // ===== Рендер графика пользователей =====
+    // ===== Рендер одного ряда (lines) в первом графике =====
     function drawUsersChart(usersData) {
       const placeholderId = 'usersChartPlaceholder';
       if (!usersData.users) {
@@ -601,85 +689,79 @@
         return;
       }
 
-      /* Проверяем, если day -> делаем ширину побольше (для скролла),
-         если week -> ставим auto (или 100%). */
-      const chartContainer = document.getElementById(placeholderId);
-      if (userInterval === 'day') {
-        chartContainer.style.width = '800px';  // или 900px
-      } else {
-        chartContainer.style.width = '100%';
-      }
-
       const xArray = [];
-      const yActive = [];
-      const yInactive = [];
+      const yLine = [];
+      let lineColor = "rgba(0, 74, 163, 1)"; // "загально" (синий)
 
       usersData.users.forEach(item => {
         if (item.hour !== undefined) {
-          xArray.push(formatHour(item.hour));
+          xArray.push(item.hour);
         } else if (item.date) {
           xArray.push(formatDate(item.date));
         } else {
           xArray.push("??");
         }
-        yActive.push(item.active);
-        yInactive.push(item.inactive);
+
+        if (userType === "active") {
+          yLine.push(item.active);
+          lineColor = "rgba(122, 194, 96, 1)";
+        } else if (userType === "inactive") {
+          yLine.push(item.inactive);
+          lineColor = "rgba(208, 93, 91, 1)";
+        } else {
+          // загально
+          yLine.push(item.active + item.inactive);
+          lineColor = "rgba(0, 74, 163, 1)";
+        }
       });
 
-      // зелёный для живих, красный (rgba(208,93,91,1)) для неактивних
-      const traceActive = {
-        x: xArray,
-        y: yActive,
-        mode: "lines+markers",
-        type: "scatter",
-        line: {color: "rgba(122, 194, 96, 1)"},
-        marker: {color: "rgba(122, 194, 96, 1)"},
-        hoverinfo: "x+y"
+      // Если userInterval==='day' и данные - числа (часы), используем custom tickvals: 1,3,5...23
+      let xaxisOptions = {
+        tickfont: { color: "#bababa" },
+        showline: false,
+        showgrid: false,
+        zeroline: false
       };
-      const traceInactive = {
-        x: xArray,
-        y: yInactive,
-        mode: "lines+markers",
-        type: "scatter",
-        line: {color: "rgba(208, 93, 91, 1)"},
-        marker: {color: "rgba(208, 93, 91, 1)"},
-        hoverinfo: "x+y"
-      };
+      if (userInterval === 'day' && typeof xArray[0] === 'number') {
+        xaxisOptions.tickmode = 'array';
+        xaxisOptions.tickvals = oddHours; // [1,3,5,7,9,11,13,15,17,19,21,23]
+        xaxisOptions.ticktext = oddHours.map(h => h.toString());
+      }
 
       const layout = {
-        margin: {l: 40, r: 20, t: 0, b: 30},
-        paper_bgcolor: "#19212a",
-        plot_bgcolor: "#19212a",
-        font: { color: "#eaeaea" },
+        margin: { l: 40, r: 10, t: 0, b: 20 }, /* прижали, но не обрезали */
+        paper_bgcolor: "#232a33",
+        plot_bgcolor: "#232a33",
+        font: { color: "#bababa" },
         showlegend: false,
         hovermode: 'closest',
-        dragmode: false, /* отключаем масштабирование/перетаскивание */
-        xaxis: {
-          tickfont: { color: "#eaeaea" },
-          tickangle: 0,
-          showline: false,
-          showgrid: false,
-          zeroline: false
-        },
+        dragmode: false,
+        xaxis: xaxisOptions,
         yaxis: {
-          tickfont: { color: "#eaeaea" },
+          tickfont: { color: "#bababa" },
           showline: false,
           showgrid: false,
           zeroline: false
         }
       };
 
+      const trace = {
+        x: xArray,
+        y: yLine,
+        mode: "lines", // без точек
+        type: "scatter",
+        line: { color: lineColor },
+        hoverinfo: "x+y"
+      };
       const config = {
         displayModeBar: false,
-        scrollZoom: false,
-        staticPlot: false,
         responsive: true
       };
 
-      Plotly.newPlot(placeholderId, [traceActive, traceInactive], layout, config);
+      Plotly.newPlot(placeholderId, [trace], layout, config);
     }
 
-    // ===== Рендер графика сообщений =====
+    // ===== Рендер второго графика (сообщений) =====
     function drawMessagesChart(messagesData) {
       const placeholderId = 'messagesChartPlaceholder';
       if (!messagesData.messages) {
@@ -687,23 +769,16 @@
         return;
       }
 
-      /* Аналогично проверяем интервал для ширины */
-      const chartContainer = document.getElementById(placeholderId);
-      if (messageInterval === 'day') {
-        chartContainer.style.width = '800px';
-      } else {
-        chartContainer.style.width = '100%';
-      }
-
       const xArray = [];
+
       if (messageType === "mailings") {
-        /* Стековые бары (active+inactive) */
+        // Стековые бары
         const yActive = [];
         const yInactive = [];
 
         messagesData.messages.forEach(item => {
           if (item.hour !== undefined) {
-            xArray.push(formatHour(item.hour));
+            xArray.push(item.hour);
           } else if (item.date) {
             xArray.push(formatDate(item.date));
           } else {
@@ -713,7 +788,6 @@
           yInactive.push(item.inactive || 0);
         });
 
-        // зелёный для active, красный (rgba(208,93,91,1)) для inactive
         const traceActive = {
           x: xArray,
           y: yActive,
@@ -731,42 +805,43 @@
           hoverinfo: "x+y"
         };
         const layout = {
-          margin: {l: 40, r: 20, t: 0, b: 30},
-          paper_bgcolor: "#19212a",
-          plot_bgcolor: "#19212a",
-          font: { color: "#eaeaea" },
+          margin: { l: 40, r: 10, t: 0, b: 20 },
+          paper_bgcolor: "#232a33",
+          plot_bgcolor: "#232a33",
+          font: { color: "#bababa" },
           showlegend: false,
           hovermode: 'closest',
           dragmode: false,
-          barmode: "stack", /* суммируем в одном столбце */
+          barmode: "stack",
           xaxis: {
-            tickfont: { color: "#eaeaea" },
-            tickangle: 0,
+            tickfont: { color: "#bababa" },
             showline: false,
             showgrid: false,
             zeroline: false
           },
           yaxis: {
-            tickfont: { color: "#eaeaea" },
+            tickfont: { color: "#bababa" },
             showline: false,
             showgrid: false,
             zeroline: false
           }
         };
-        const config = {
+        Plotly.newPlot(placeholderId, [traceActive, traceInactive], layout, {
           displayModeBar: false,
-          scrollZoom: false,
-          staticPlot: false,
           responsive: true
-        };
-        Plotly.newPlot(placeholderId, [traceActive, traceInactive], layout, config);
-      }
-      else {
-        // greetings / goodbyes -> линии
+        });
+
+      } else {
+        // Линейный график
         const yLine = [];
+        let lineColor = "rgba(122, 194, 96, 1)"; // greetings
+        if (messageType === "goodbyes") {
+          lineColor = "rgba(208, 93, 91, 1)";
+        }
+
         messagesData.messages.forEach(item => {
           if (item.hour !== undefined) {
-            xArray.push(formatHour(item.hour));
+            xArray.push(item.hour);
           } else if (item.date) {
             xArray.push(formatDate(item.date));
           } else {
@@ -775,68 +850,50 @@
           yLine.push(item.total || 0);
         });
 
-        // greetings -> зелёный, goodbyes -> красный
-        let lineColor = "rgba(122, 194, 96, 1)"; // зелёный
-        if (messageType === "goodbyes") {
-          lineColor = "rgba(208, 93, 91, 1)"; // красный
-        }
         const trace = {
           x: xArray,
           y: yLine,
-          mode: "lines+markers",
+          mode: "lines",
           type: "scatter",
           line: { color: lineColor },
-          marker: { color: lineColor },
           hoverinfo: "x+y"
         };
         const layout = {
-          margin: {l: 40, r: 20, t: 0, b: 30},
-          paper_bgcolor: "#19212a",
-          plot_bgcolor: "#19212a",
-          font: { color: "#eaeaea" },
+          margin: { l: 40, r: 10, t: 0, b: 20 },
+          paper_bgcolor: "#232a33",
+          plot_bgcolor: "#232a33",
+          font: { color: "#bababa" },
           showlegend: false,
           hovermode: 'closest',
           dragmode: false,
           xaxis: {
-            tickfont: { color: "#eaeaea" },
-            tickangle: 0,
+            tickfont: { color: "#bababa" },
             showline: false,
             showgrid: false,
             zeroline: false
           },
           yaxis: {
-            tickfont: { color: "#eaeaea" },
+            tickfont: { color: "#bababa" },
             showline: false,
             showgrid: false,
             zeroline: false
           }
         };
-        const config = {
+        Plotly.newPlot(placeholderId, [trace], layout, {
           displayModeBar: false,
-          scrollZoom: false,
-          staticPlot: false,
           responsive: true
-        };
-        Plotly.newPlot(placeholderId, [trace], layout, config);
+        });
       }
     }
 
-    // ===== Привязка кликов на кнопки фильтров =====
+    // ===== События DOM =====
     document.addEventListener('DOMContentLoaded', () => {
       initPage();
 
-      const userIntervalTabs = document
-        .getElementById('userIntervalTabs')
-        .querySelectorAll('.tab');
-      const userTypeTabs = document
-        .getElementById('userTypeTabs')
-        .querySelectorAll('.tab');
-      const messageIntervalTabs = document
-        .getElementById('messageIntervalTabs')
-        .querySelectorAll('.tab');
-      const messageTypeTabs = document
-        .getElementById('messageTypeTabs')
-        .querySelectorAll('.tab');
+      const userIntervalTabs = document.getElementById('userIntervalTabs').querySelectorAll('.tab');
+      const userTypeTabs = document.getElementById('userTypeTabs').querySelectorAll('.tab');
+      const messageIntervalTabs = document.getElementById('messageIntervalTabs').querySelectorAll('.tab');
+      const messageTypeTabs = document.getElementById('messageTypeTabs').querySelectorAll('.tab');
 
       userIntervalTabs.forEach(tab => {
         tab.addEventListener('click', () => {

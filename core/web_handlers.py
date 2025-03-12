@@ -16,7 +16,7 @@ from test_data.mock_data import (
 
 
 async def webapp_handler(request: web.Request) -> FileResponse:
-    file_path = os.path.join(os.path.dirname(__file__), "..", "static", "templates", "index.html")
+    file_path = os.path.join(os.path.dirname(__file__), "..", "web", "index.html")
     return web.FileResponse(file_path)
 
 

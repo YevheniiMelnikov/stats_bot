@@ -36,6 +36,7 @@ async def set_app_routes(app: web.Application) -> None:
     app.router.add_get("/users/{bot_id}/{type}/{interval}/{mirror}", get_users_handler)
     app.router.add_get("/bot/{bot_id}", get_bot_handler)
     app.router.add_get("/messages/{bot_id}/{type}/{interval}", get_messages_handler)
+    app.router.add_static("/static/", path="web/static", name="static")
 
 
 async def shutdown(runner: web.AppRunner, dp: Dispatcher, bot: Bot, api_client: APIClient):
