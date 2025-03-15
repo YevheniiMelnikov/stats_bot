@@ -1,11 +1,11 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import datetime
 
 
 @dataclass
 class UserStatRecord:
-    time: date | datetime | str
+    time: datetime
     active: int
     inactive: int
     total: int
@@ -13,11 +13,10 @@ class UserStatRecord:
 
 @dataclass
 class MessageStatRecord:
-    time: date | datetime | str
+    time: datetime
     greetings: int
     goodbyes: int
     mailings: dict[str, int]
-    total: int
 
 
 @dataclass

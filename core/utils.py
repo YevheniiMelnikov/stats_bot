@@ -8,12 +8,9 @@ def convert_user_stats_to_records(data: dict[str, Any]) -> list[UserStatRecord]:
     arr = data.get("users", [])
     for item in arr:
         if "hour" in item:
-            h = item["hour"]
-            dt = datetime.now().replace(hour=h, minute=0, second=0, microsecond=0)
-            t = dt
+            t = datetime.fromisoformat(item["hour"])
         elif "date" in item:
-            d = item["date"]
-            t = datetime.fromisoformat(d)
+            t = datetime.fromisoformat(item["date"])
         else:
             continue
         r = UserStatRecord(time=t, active=item["active"], inactive=item["inactive"], total=item["total"])
@@ -26,20 +23,15 @@ def convert_messages_to_records(data: dict[str, Any]) -> list[MessageStatRecord]
     arr = data.get("messages", [])
     for item in arr:
         if "hour" in item:
-            h = item["hour"]
-            dt = datetime.now().replace(hour=h, minute=0, second=0, microsecond=0)
-            t = dt
+            t = datetime.fromisoformat(item["hour"])
         elif "date" in item:
-            d = item["date"]
-            t = datetime.fromisoformat(d)
+            t = datetime.fromisoformat(item["date"])
         else:
             continue
         m = item.get("mailings", {})
         if not isinstance(m, dict):
             m = {}
-        r = MessageStatRecord(
-            time=t, greetings=item["greetings"], goodbyes=item["goodbyes"], mailings=m, total=item["total"]
-        )
+        r = MessageStatRecord(time=t, greetings=item["greetings"], goodbyes=item["goodbyes"], mailings=m)
         records.append(r)
     return records
 
