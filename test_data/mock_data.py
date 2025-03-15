@@ -3,8 +3,6 @@ import datetime
 
 
 def get_homepage_mock_data(user_id: str) -> dict:
-    if user_id != "205159314":
-        return {"error": f"No data for user_id={user_id}"}
     default_bot_users = 47000
     default_bot = {
         "bot_id": 100,
