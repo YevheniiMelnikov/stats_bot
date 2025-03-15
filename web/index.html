@@ -768,7 +768,7 @@
         type: "scatter",
         mode: "lines",
         line: { color: lineColor },
-        customdata: yLine.map(val => formatHoverValue(val)),
+        customdata: yLine.map(val => formatNoDecimalsWithSpaces(val)),
         hovertemplate: `<span style='color:${hoverFontColor}'>${metricName}</span>: <span style='color:#fff'>%{customdata}</span><extra></extra>`,
         hoverlabel: { font: { color: hoverFontColor } }
       };
@@ -872,7 +872,7 @@
           marker: { color: "rgba(122,194,96,1)" },
           hoverinfo: "skip",
           showlegend: false,
-          name: ' '
+          name: ''
         };
         const traceInactive = {
           x: xArray,
@@ -881,7 +881,7 @@
           marker: { color: "rgba(208,93,91,1)" },
           hoverinfo: "skip",
           showlegend: false,
-          name: ' '
+          name: ''
         };
         const sumY = xArray.map((_, idx) => activeArray[idx] + inactiveArray[idx]);
         const traceDummy = {
@@ -891,7 +891,7 @@
           mode: "markers",
           marker: { size: 5, opacity: 0 },
           customdata: customData,
-          name: ' ',
+          name: '',
           hovertemplate:
             "<span style='color:rgba(122,194,96,1)'>Живих</span>: %{customdata.active}<br>" +
             "<span style='color:rgba(208,93,91,1)'>Неактивних</span>: %{customdata.inactive}<br>" +
