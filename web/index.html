@@ -826,17 +826,25 @@
       const layout = getBaseLayout();
       layout.hovermode = "x unified";
       layout.barmode = "stack";
+      layout.xaxis.hoverformat = ' ';
+      layout.hoverlabel = {
+        namelength: 0,
+        bgcolor: "rgba(40,46,54,1)",
+        bordercolor: "transparent",
+        font: { size: 14 }
+      };
       if (messageInterval === 'day') {
         layout.xaxis.type = "date";
         layout.xaxis.dtick = 7200000;
         layout.xaxis.tickformat = "%H";
-        layout.xaxis.hoverformat = "";
+        layout.xaxis.hoverformat = ' ';
       } else if (messageInterval === 'week') {
         const tickVals = dataArray.map(d => d.date || d.hour);
         const tickText = tickVals.map(dt => formatDateUk(dt));
         layout.xaxis.type = "date";
         layout.xaxis.tickvals = tickVals;
         layout.xaxis.ticktext = tickText;
+        layout.xaxis.hoverformat = ' ';
       }
       if (messageType === "mailings") {
         const xArray = [];
@@ -863,7 +871,8 @@
           type: "bar",
           marker: { color: "rgba(122,194,96,1)" },
           hoverinfo: "skip",
-          showlegend: false
+          showlegend: false,
+          name: ' '
         };
         const traceInactive = {
           x: xArray,
@@ -871,7 +880,8 @@
           type: "bar",
           marker: { color: "rgba(208,93,91,1)" },
           hoverinfo: "skip",
-          showlegend: false
+          showlegend: false,
+          name: ' '
         };
         const sumY = xArray.map((_, idx) => activeArray[idx] + inactiveArray[idx]);
         const traceDummy = {
@@ -881,10 +891,12 @@
           mode: "markers",
           marker: { size: 5, opacity: 0 },
           customdata: customData,
+          name: ' ',
           hovertemplate:
             "<span style='color:rgba(122,194,96,1)'>Живих</span>: %{customdata.active}<br>" +
             "<span style='color:rgba(208,93,91,1)'>Неактивних</span>: %{customdata.inactive}<br>" +
-            "<span style='color:#fff'>Розсилок</span>: %{customdata.count}<extra></extra>"
+            "<span style='color:#fff'>Розсилок</span>: %{customdata.count}" +
+            "<extra></extra>"
         };
         Plotly.newPlot(placeholderId, [traceActive, traceInactive, traceDummy], layout, {
           displayModeBar: false,
@@ -916,8 +928,10 @@
           mode: "lines",
           line: { color: lineColor },
           customdata: customData,
+          name: '',
           hovertemplate: `<span style='color:${hoverFontColor}'>${metricName}</span>: <span style='color:#fff'>%{customdata}</span><extra></extra>`
         };
+
         Plotly.newPlot(placeholderId, [trace], layout, {
           displayModeBar: false,
           responsive: true
