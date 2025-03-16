@@ -2,7 +2,8 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <!-- Отключение масштабирования на мобильных устройствах -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Статистика бота</title>
 
   <!-- Подключаем Plotly -->
@@ -33,10 +34,17 @@
   </script>
 
   <style>
+    /* Загрузка шрифтов */
     @font-face {
       font-family: 'Euclid Circular A';
       src: url('static/fonts/EuclidCircularA-Regular.woff2') format('woff2');
       font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Euclid Circular A';
+      src: url('static/fonts/EuclidCircularA-Medium.woff2') format('woff2');
+      font-weight: 500;
       font-style: normal;
     }
     @font-face {
@@ -51,37 +59,48 @@
       font-weight: 700;
       font-style: normal;
     }
+
     * {
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
+
+    /* Разрешаем вертикальный скролл, отключаем горизонтальный */
     html, body {
-      height: 100%;
-      background-color: #1c2229;
+      width: 100%;
+      min-height: 100%;
+      overflow-x: hidden; /* только горизонтальный скролл запрещён */
+      background-color: #19212A; /* rgb(25,33,42) */
       color: #eaeaea;
       font-size: 14px;
       line-height: 1.5;
       font-family: 'Euclid Circular A', Arial, sans-serif;
       font-weight: 400;
     }
+
     .container {
-      max-width: 900px;
+      max-width: 700px; /* уменьшаем, чтобы графики были ближе к краям */
       margin: 0 auto;
-      padding: 20px 16px;
+      /* чуть уменьшим отступы */
+      padding: 10px 12px;
       text-align: center;
     }
-    /* Кнопка "Ваш бот" */
+
+    /* ========== КНОПКА "ВАШ БОТ" ========== */
     .bot-dropdown-container {
       position: relative;
       display: inline-block;
       margin-bottom: 24px;
     }
     .bot-dropdown-btn {
-      position: relative;
-      display: inline-flex;
+      display: flex;
       align-items: center;
-      justify-content: flex-start;
+      justify-content: center;
       background-color: rgba(40,46,54,1);
       color: #fff;
       border: none;
@@ -91,29 +110,35 @@
       border-radius: 23.5px;
       font-family: 'Euclid Circular A', Arial, sans-serif;
       font-size: 20px;
-      font-weight: 400;
+      font-weight: 500; /* Используем Medium */
       line-height: 100%;
-      padding: 0 60px 0 20px;
+      padding: 0 20px;
     }
     .bot-dropdown-btn.active {
       background-color: #004aa3;
     }
-    .bot-logo {
+    .bot-dropdown-btn .bot-logo {
       width: 28px;
       height: 28px;
       margin-right: 10px;
     }
     .bot-dropdown-btn .arrow-shape {
-      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      margin-left: 10px;
+    }
+    .bot-dropdown-btn .arrow-shape::before {
+      content: "";
+      display: inline-block;
       width: 8px;
       height: 8px;
-      top: 50%;
-      right: 40px;
-      transform: translateY(-50%) rotate(45deg);
-      opacity: 0.7;
       border-right: 2px solid rgba(255,255,255,0.53);
       border-bottom: 2px solid rgba(255,255,255,0.53);
-      background: transparent;
+      transform: rotate(45deg);
+      opacity: 0.7;
     }
     .bot-dropdown-menu {
       position: fixed;
@@ -129,7 +154,7 @@
       transition: transform 0.3s ease-out;
       z-index: 999;
       overflow-y: auto;
-      padding: 16px;
+      padding: 16px 16px 40px; /* добавлен отступ снизу */
     }
     .bot-dropdown-menu.open {
       transform: translateY(0);
@@ -177,14 +202,15 @@
     .bot-dropdown-menu .close-btn:hover {
       background-color: #3a3a3a;
     }
-    /* Число користувачів */
+
+    /* ========== ЧИСЛО КОРИСТУВАЧІВ ========== */
     .stats-text {
       text-align: center;
       margin-bottom: 30px;
     }
     .stats-number {
       font-family: 'Euclid Circular A', Arial, sans-serif;
-      font-weight: 700;
+      font-weight: 500; /* Medium */
       font-size: 96px;
       color: #ffffff;
       margin-top: 10px;
@@ -201,7 +227,8 @@
       margin-top: 4px;
       opacity: 0.52;
     }
-    /* Блоки для графиков */
+
+    /* ========== БЛОКИ ДЛЯ ГРАФІКІВ ========== */
     .section-block {
       margin-bottom: 40px;
       background-color: transparent;
@@ -218,23 +245,25 @@
       align-items: center;
       margin-bottom: 16px;
     }
+    /* Уменьшаем шрифт заголовка, чтобы влезало в одну строку */
     .section-title {
       font-family: 'Inter', Arial, sans-serif;
       font-weight: 700;
-      font-size: 21px;
+      font-size: 18px; /* было 21px */
       color: #ffffff;
       opacity: 0.95;
       margin: 0;
+      white-space: nowrap; /* чтобы не переносилось */
     }
-    /* Кнопка "Загально"/"Дублер" */
+
+    /* ========== КНОПКА "ЗАГАЛЬНО"/"ДУБЛЕР" ========== */
     .mirror-dropdown-container {
       position: relative;
     }
     .mirror-dropdown-btn {
-      position: relative;
-      display: inline-flex;
+      display: flex;
       align-items: center;
-      justify-content: flex-start;
+      justify-content: center;
       background-color: rgba(40,46,54,1);
       color: #eaeaea;
       width: 91px;
@@ -245,20 +274,31 @@
       font-family: 'Euclid Circular A', Arial, sans-serif;
       font-weight: 400;
       font-size: 14px;
-      padding-left: 16px;
-      margin-left: 12px;
+      line-height: 100%;
+      padding: 0 10px;
     }
     .mirror-dropdown-btn .arrow-shape {
-      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      margin-right: 5px;
+    }
+    .mirror-dropdown-btn .arrow-shape::before {
+      content: "";
+      display: inline-block;
       width: 6px;
       height: 6px;
-      left: 6px;
-      top: 50%;
-      transform: translateY(-50%) rotate(45deg);
       border-right: 1px solid rgba(255,255,255,0.8);
       border-bottom: 1px solid rgba(255,255,255,0.8);
+      transform: rotate(45deg);
       opacity: 0.7;
-      background: transparent;
+    }
+    .mirror-dropdown-btn::after {
+      content: "";
+      display: inline-block;
+      width: 28px;
     }
     .mirror-dropdown-menu {
       position: fixed;
@@ -274,7 +314,7 @@
       transition: transform 0.3s ease-out;
       z-index: 998;
       overflow-y: auto;
-      padding: 16px;
+      padding: 16px 16px 40px; /* добавлен отступ снизу */
     }
     .mirror-dropdown-menu.open {
       transform: translateY(0);
@@ -322,17 +362,19 @@
     .mirror-dropdown-menu .close-btn:hover {
       background-color: #3a3a3a;
     }
+
     .chart-scroll {
       width: 100%;
       overflow-x: hidden;
     }
     .chart-placeholder {
       height: 400px;
-      background-color: #1c2229;
+      background-color: #19212A;
       margin: 0 auto;
       width: 100%;
     }
-    /* Табы (фильтры) */
+
+    /* ========== ТАБЫ (ФІЛЬТРИ) ========== */
     .tabs-group {
       margin-top: 16px;
       display: flex;
@@ -350,10 +392,11 @@
       background-color: transparent;
       color: #eaeaea;
       border: 1px solid #3a3a3a;
+      transition: background-color 0.2s, border-color 0.2s;
       font-family: 'Euclid Circular A', Arial, sans-serif;
       font-weight: 400;
       font-size: 18px;
-      transition: background-color 0.2s, border-color 0.2s;
+      line-height: 100%;
     }
     .tab:hover {
       background-color: #2c2c2c;
@@ -373,7 +416,6 @@
       border-color: rgba(0,74,163,1);
       color: #ffffff;
     }
-    /* Стили для кнопок "живих" и "неактивних" оставляем без изменений */
     .tab[data-type="active"] {
       border-color: rgba(122,194,96,1);
     }
@@ -390,7 +432,6 @@
       border-color: rgba(208,93,91,1);
       color: #19212a;
     }
-    /* Новые стили для кнопок "привітання", "прощання", "розсилки" */
     .tab[data-type="greetings"],
     .tab[data-type="goodbyes"],
     .tab[data-type="mailings"] {
@@ -403,6 +444,7 @@
       border-color: rgba(0,74,163,1);
       color: #ffffff;
     }
+
     @media (max-width: 768px) {
       .chart-placeholder {
         height: 320px;
@@ -422,6 +464,7 @@
         font-size: 16px;
       }
     }
+
     /* Скруглённые углы тултипов Plotly (и для rect внутри) */
     .js-plotly-plot .hoverlayer .hovertext,
     .js-plotly-plot .hoverlayer .hovertext > div,
@@ -448,7 +491,7 @@
     <!-- Число користувачів -->
     <div class="stats-text">
       <div class="stats-number" id="botTotalUsers">--</div>
-      <div class="stats-subtitle" id="botSubtitle">користувачів @some_bot</div>
+      <div class="stats-subtitle" id="botSubtitle">користувачів в @some_bot</div>
     </div>
     <!-- Графік приросту користувачів -->
     <section class="section-block">
@@ -673,8 +716,8 @@
     function getBaseLayout() {
       return {
         margin: { l: 40, r: 20, t: 0, b: 30 },
-        paper_bgcolor: "#1c2229",
-        plot_bgcolor: "#1c2229",
+        paper_bgcolor: "#19212A",
+        plot_bgcolor: "#19212A",
         font: { color: "#bababa", family: "'Euclid Circular A', sans-serif" },
         showlegend: false,
         dragmode: false,
@@ -895,8 +938,7 @@
           hovertemplate:
             "<span style='color:rgba(122,194,96,1)'>Живих</span>: %{customdata.active}<br>" +
             "<span style='color:rgba(208,93,91,1)'>Неактивних</span>: %{customdata.inactive}<br>" +
-            "<span style='color:#fff'>Розсилок</span>: %{customdata.count}" +
-            "<extra></extra>"
+            "<span style='color:#fff'>Розсилок</span>: %{customdata.count}<extra></extra>"
         };
         Plotly.newPlot(placeholderId, [traceActive, traceInactive, traceDummy], layout, {
           displayModeBar: false,
@@ -931,7 +973,6 @@
           name: '',
           hovertemplate: `<span style='color:${hoverFontColor}'>${metricName}</span>: <span style='color:#fff'>%{customdata}</span><extra></extra>`
         };
-
         Plotly.newPlot(placeholderId, [trace], layout, {
           displayModeBar: false,
           responsive: true
@@ -945,6 +986,7 @@
       const userTypeTabs = document.getElementById('userTypeTabs').querySelectorAll('.tab');
       const messageIntervalTabs = document.getElementById('messageIntervalTabs').querySelectorAll('.tab');
       const messageTypeTabs = document.getElementById('messageTypeTabs').querySelectorAll('.tab');
+
       userIntervalTabs.forEach(tab => {
         tab.addEventListener('click', () => {
           userIntervalTabs.forEach(t => t.classList.remove('active'));
