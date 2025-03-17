@@ -2,14 +2,9 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <!-- Отключение масштабирования на мобильных устройствах -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Статистика бота</title>
-
-  <!-- Подключаем Plotly -->
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-
-  <!-- Регистрируем локаль uk-custom с украинскими сокращёнными названиями місяців -->
   <script>
     Plotly.registerLocale("uk-custom", {
       "monthNames": [
@@ -32,9 +27,7 @@
     });
     Plotly.setPlotConfig({ locale: 'uk-custom' });
   </script>
-
   <style>
-    /* Загрузка шрифтов */
     @font-face {
       font-family: 'Euclid Circular A';
       src: url('static/fonts/EuclidCircularA-Regular.woff2') format('woff2');
@@ -59,7 +52,6 @@
       font-weight: 700;
       font-style: normal;
     }
-
     * {
       -webkit-user-select: none;
       -moz-user-select: none;
@@ -69,29 +61,27 @@
       margin: 0;
       padding: 0;
     }
-
-    /* Разрешаем вертикальный скролл, отключаем горизонтальный */
+    html, body {
+      onselectstart: return false;
+      oncopy: return false;
+    }
     html, body {
       width: 100%;
       min-height: 100%;
-      overflow-x: hidden; /* только горизонтальный скролл запрещён */
-      background-color: #19212A; /* rgb(25,33,42) */
+      overflow-x: hidden;
+      background-color: #19212A;
       color: #eaeaea;
       font-size: 14px;
       line-height: 1.5;
       font-family: 'Euclid Circular A', Arial, sans-serif;
       font-weight: 400;
     }
-
     .container {
-      max-width: 700px; /* уменьшаем, чтобы графики были ближе к краям */
-      margin: 0 auto;
-      /* чуть уменьшим отступы */
-      padding: 10px 12px;
+      width: 100%;
+      margin: 0;
+      padding: 24px 8px 0;
       text-align: center;
     }
-
-    /* ========== КНОПКА "ВАШ БОТ" ========== */
     .bot-dropdown-container {
       position: relative;
       display: inline-block;
@@ -101,7 +91,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background-color: rgba(40,46,54,1);
+      background-color: rgb(42,51,66);
       color: #fff;
       border: none;
       cursor: pointer;
@@ -110,7 +100,7 @@
       border-radius: 23.5px;
       font-family: 'Euclid Circular A', Arial, sans-serif;
       font-size: 20px;
-      font-weight: 500; /* Используем Medium */
+      font-weight: 500;
       line-height: 100%;
       padding: 0 20px;
     }
@@ -145,7 +135,7 @@
       bottom: 0;
       left: 0;
       width: 100%;
-      height: 33vh;
+      height: 50vh;
       background-color: rgba(40,46,54,1);
       border-top-left-radius: 16px;
       border-top-right-radius: 16px;
@@ -154,7 +144,7 @@
       transition: transform 0.3s ease-out;
       z-index: 999;
       overflow-y: auto;
-      padding: 16px 16px 40px; /* добавлен отступ снизу */
+      padding: 16px 16px 120px;
     }
     .bot-dropdown-menu.open {
       transform: translateY(0);
@@ -192,25 +182,24 @@
     }
     .bot-dropdown-menu .close-btn {
       margin-top: 12px;
+      margin-bottom: 120px;
       text-align: center;
       border: 1px solid #3a3a3a;
       border-radius: 12px;
       padding: 8px;
       font-size: 14px;
-      background-color: #2c2c2c;
+      background-color: rgb(33,41,50);
     }
     .bot-dropdown-menu .close-btn:hover {
       background-color: #3a3a3a;
     }
-
-    /* ========== ЧИСЛО КОРИСТУВАЧІВ ========== */
     .stats-text {
       text-align: center;
       margin-bottom: 30px;
     }
     .stats-number {
       font-family: 'Euclid Circular A', Arial, sans-serif;
-      font-weight: 500; /* Medium */
+      font-weight: 500;
       font-size: 96px;
       color: #ffffff;
       margin-top: 10px;
@@ -227,13 +216,11 @@
       margin-top: 4px;
       opacity: 0.52;
     }
-
-    /* ========== БЛОКИ ДЛЯ ГРАФІКІВ ========== */
     .section-block {
       margin-bottom: 40px;
       background-color: transparent;
       border-radius: 10px;
-      padding: 24px;
+      padding: 0 8px 24px;
       text-align: left;
     }
     .section-block + .section-block {
@@ -241,71 +228,59 @@
     }
     .chart-header {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
+      justify-content: flex-start;
+      margin-left: 20px;
+      margin-right: 10px;
+      margin-bottom: 8px;
     }
-    /* Уменьшаем шрифт заголовка, чтобы влезало в одну строку */
     .section-title {
       font-family: 'Inter', Arial, sans-serif;
       font-weight: 700;
-      font-size: 18px; /* было 21px */
+      font-size: 18px;
       color: #ffffff;
       opacity: 0.95;
       margin: 0;
-      white-space: nowrap; /* чтобы не переносилось */
+      margin-right: auto;
+      white-space: nowrap;
     }
-
-    /* ========== КНОПКА "ЗАГАЛЬНО"/"ДУБЛЕР" ========== */
     .mirror-dropdown-container {
-      position: relative;
-    }
-    .mirror-dropdown-btn {
       display: flex;
       align-items: center;
+    }
+    .mirror-dropdown-btn {
+      display: inline-flex;
+      align-items: center;
       justify-content: center;
-      background-color: rgba(40,46,54,1);
+      background-color: rgb(35,40,48);
       color: #eaeaea;
-      width: 91px;
       height: 23px;
       border-radius: 5px;
       border: none;
       cursor: pointer;
       font-family: 'Euclid Circular A', Arial, sans-serif;
       font-weight: 400;
-      font-size: 14px;
+      font-size: 12px;
       line-height: 100%;
-      padding: 0 10px;
+      padding: 0 6px;
+      white-space: nowrap;
     }
     .mirror-dropdown-btn .arrow-shape {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 28px;
-      height: 28px;
-      margin-right: 5px;
-    }
-    .mirror-dropdown-btn .arrow-shape::before {
-      content: "";
       display: inline-block;
       width: 6px;
       height: 6px;
+      margin-right: 5px;
       border-right: 1px solid rgba(255,255,255,0.8);
       border-bottom: 1px solid rgba(255,255,255,0.8);
       transform: rotate(45deg);
       opacity: 0.7;
-    }
-    .mirror-dropdown-btn::after {
-      content: "";
-      display: inline-block;
-      width: 28px;
     }
     .mirror-dropdown-menu {
       position: fixed;
       bottom: 0;
       left: 0;
       width: 100%;
-      height: 33vh;
+      height: 50vh;
       background-color: rgba(40,46,54,1);
       border-top-left-radius: 16px;
       border-top-right-radius: 16px;
@@ -314,7 +289,7 @@
       transition: transform 0.3s ease-out;
       z-index: 998;
       overflow-y: auto;
-      padding: 16px 16px 40px; /* добавлен отступ снизу */
+      padding: 16px 16px 120px;
     }
     .mirror-dropdown-menu.open {
       transform: translateY(0);
@@ -352,34 +327,34 @@
     }
     .mirror-dropdown-menu .close-btn {
       margin-top: 12px;
+      margin-bottom: 120px;
       text-align: center;
       border: 1px solid #3a3a3a;
       border-radius: 12px;
       padding: 8px;
       font-size: 14px;
-      background-color: #2c2c2c;
+      background-color: rgb(33,41,50);
     }
     .mirror-dropdown-menu .close-btn:hover {
       background-color: #3a3a3a;
     }
-
     .chart-scroll {
       width: 100%;
       overflow-x: hidden;
     }
     .chart-placeholder {
+      width: 100%;
       height: 400px;
       background-color: #19212A;
       margin: 0 auto;
-      width: 100%;
     }
-
-    /* ========== ТАБЫ (ФІЛЬТРИ) ========== */
     .tabs-group {
       margin-top: 16px;
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
+      margin-left: 20px;
+      margin-right: 10px;
     }
     .tabs {
       display: flex;
@@ -387,16 +362,17 @@
     }
     .tab {
       cursor: pointer;
-      padding: 8px 20px;
-      border-radius: 16px;
+      padding: 6px 14px;
+      border-radius: 14px;
       background-color: transparent;
+      border: 1px solid transparent;
       color: #eaeaea;
-      border: 1px solid #3a3a3a;
-      transition: background-color 0.2s, border-color 0.2s;
       font-family: 'Euclid Circular A', Arial, sans-serif;
       font-weight: 400;
-      font-size: 18px;
+      font-size: 16px;
       line-height: 100%;
+      transition: background-color 0.2s, border-color 0.2s;
+      white-space: nowrap;
     }
     .tab:hover {
       background-color: #2c2c2c;
@@ -404,11 +380,22 @@
     .tab.active {
       background-color: #2c2c2c;
     }
-    .tab[data-interval="day"],
-    .tab[data-interval="week"] {
-      border-color: #3a3a3a;
+    #userIntervalTabs .tab.active,
+    #messageIntervalTabs .tab.active {
+      background-color: rgb(42,46,49);
     }
     .tab[data-type="all"] {
+      border-color: rgba(0,74,163,1);
+    }
+    .tab[data-type="active"] {
+      border-color: rgba(122,194,96,1);
+    }
+    .tab[data-type="inactive"] {
+      border-color: rgba(208,93,91,1);
+    }
+    .tab[data-type="greetings"],
+    .tab[data-type="goodbyes"],
+    .tab[data-type="mailings"] {
       border-color: rgba(0,74,163,1);
     }
     .tab.active[data-type="all"] {
@@ -416,35 +403,31 @@
       border-color: rgba(0,74,163,1);
       color: #ffffff;
     }
-    .tab[data-type="active"] {
-      border-color: rgba(122,194,96,1);
-    }
     .tab.active[data-type="active"] {
       background-color: rgba(122,194,96,1);
       border-color: rgba(122,194,96,1);
-      color: #19212a;
-    }
-    .tab[data-type="inactive"] {
-      border-color: rgba(208,93,91,1);
+      color: #ffffff;
     }
     .tab.active[data-type="inactive"] {
       background-color: rgba(208,93,91,1);
       border-color: rgba(208,93,91,1);
-      color: #19212a;
+      color: #ffffff;
     }
-    .tab[data-type="greetings"],
-    .tab[data-type="goodbyes"],
-    .tab[data-type="mailings"] {
+    .tab.active[data-type="greetings"] {
+      background-color: rgba(0,74,163,1);
       border-color: rgba(0,74,163,1);
+      color: #ffffff;
     }
-    .tab.active[data-type="greetings"],
-    .tab.active[data-type="goodbyes"],
+    .tab.active[data-type="goodbyes"] {
+      background-color: rgba(0,74,163,1);
+      border-color: rgba(0,74,163,1);
+      color: #ffffff;
+    }
     .tab.active[data-type="mailings"] {
       background-color: rgba(0,74,163,1);
       border-color: rgba(0,74,163,1);
       color: #ffffff;
     }
-
     @media (max-width: 768px) {
       .chart-placeholder {
         height: 320px;
@@ -461,11 +444,9 @@
         font-size: 54px;
       }
       .tab {
-        font-size: 16px;
+        font-size: 14px;
       }
     }
-
-    /* Скруглённые углы тултипов Plotly (и для rect внутри) */
     .js-plotly-plot .hoverlayer .hovertext,
     .js-plotly-plot .hoverlayer .hovertext > div,
     .js-plotly-plot .hoverlayer .hovertext rect {
@@ -475,7 +456,6 @@
 </head>
 <body>
   <div class="container">
-    <!-- Кнопка "Ваш бот" -->
     <div class="bot-dropdown-container">
       <button class="bot-dropdown-btn" id="botDropdownBtn">
         <img src="static/logo.png" alt="Logo" class="bot-logo" />
@@ -488,18 +468,16 @@
       <ul id="botList"></ul>
       <div class="close-btn" id="botDropdownClose">Скасувати</div>
     </div>
-    <!-- Число користувачів -->
     <div class="stats-text">
       <div class="stats-number" id="botTotalUsers">--</div>
       <div class="stats-subtitle" id="botSubtitle">користувачів в @some_bot</div>
     </div>
-    <!-- Графік приросту користувачів -->
     <section class="section-block">
       <div class="chart-header">
         <h2 class="section-title">Приріст користувачів</h2>
         <div class="mirror-dropdown-container">
           <button class="mirror-dropdown-btn" id="mirrorDropdownBtn">
-            <div class="arrow-shape"></div>
+            <span class="arrow-shape"></span>
             Загально
           </button>
         </div>
@@ -524,7 +502,6 @@
         </div>
       </div>
     </section>
-    <!-- Графік повідомлень -->
     <section class="section-block">
       <div class="chart-header">
         <h2 class="section-title">Повідомлень відправлено</h2>
@@ -552,23 +529,19 @@
     let userType = "all";
     let messageInterval = "day";
     let messageType = "greetings";
-
     const botDropdownBtn = document.getElementById('botDropdownBtn');
     const botDropdownMenu = document.getElementById('botDropdownMenu');
     const botDropdownClose = document.getElementById('botDropdownClose');
     const botListUL = document.getElementById('botList');
-
     const mirrorDropdownBtn = document.getElementById('mirrorDropdownBtn');
     const mirrorDropdownMenu = document.getElementById('mirrorDropdownMenu');
     const mirrorDropdownClose = document.getElementById('mirrorDropdownClose');
     const mirrorListUL = document.getElementById('mirrorList');
-
     function formatNoDecimalsWithSpaces(num) {
       if (!num) return "0";
       const intVal = Math.round(num);
       return String(intVal).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
     }
-
     function formatTwoDecimals(val) {
       const num = Number(val) || 0;
       if (num >= 1000) {
@@ -577,7 +550,6 @@
         return num.toFixed(2);
       }
     }
-
     function formatDateUk(dateStr) {
       const datePart = dateStr.split('T')[0];
       const [yyyy, mm, dd] = datePart.split('-');
@@ -589,7 +561,6 @@
       }
       return dateStr;
     }
-
     botDropdownBtn.addEventListener('click', (ev) => {
       ev.stopPropagation();
       botDropdownMenu.classList.toggle('open');
@@ -605,14 +576,13 @@
         botDropdownBtn.classList.remove('active');
       }
     });
-
     mirrorDropdownBtn.addEventListener('click', (ev) => {
       ev.stopPropagation();
       mirrorDropdownMenu.classList.toggle('open');
     });
     mirrorDropdownClose.addEventListener('click', () => {
       mirrorListUL.querySelectorAll('li').forEach(li => li.classList.remove('active'));
-      mirrorDropdownBtn.innerHTML = `<div class="arrow-shape"></div>Загально`;
+      mirrorDropdownBtn.innerHTML = `<span class="arrow-shape"></span>Загально`;
       mirrorDropdownMenu.classList.remove('open');
       if (mainBotId) {
         selectedBotId = mainBotId;
@@ -625,34 +595,33 @@
         mirrorDropdownMenu.classList.remove('open');
       }
     });
-
     function onBotSelected(botInfo) {
       selectedBotId = botInfo.bot_id;
       if (!botInfo.mirror) {
         mainBotId = botInfo.bot_id;
       }
-      botDropdownBtn.innerHTML = `<img src="static/logo.png" alt="Logo" class="bot-logo" />
-Ваш бот
-<div class="arrow-shape"></div>`;
+      botDropdownBtn.innerHTML = `
+        <img src="static/logo.png" alt="Logo" class="bot-logo" />
+        Ваш бот
+        <div class="arrow-shape"></div>
+      `;
       botDropdownMenu.classList.remove('open');
       botDropdownBtn.classList.remove('active');
       updateBotStats(botInfo);
       fetchAndDrawUsersChart();
       fetchAndDrawMessagesChart();
     }
-
     function updateBotStats(botInfo) {
       const formatted = botInfo.total_users ? formatNoDecimalsWithSpaces(botInfo.total_users) : "--";
       document.getElementById('botTotalUsers').textContent = formatted;
-      document.getElementById('botSubtitle').textContent = `користувачів ${botInfo.bot_link}`;
+      document.getElementById('botSubtitle').textContent = `користувачів в ${botInfo.bot_link}`;
     }
-
     function initPage() {
       let tgUserId = null;
-      if (typeof Telegram !== 'undefined' &&
-          Telegram.WebApp &&
-          Telegram.WebApp.initDataUnsafe &&
-          Telegram.WebApp.initDataUnsafe.user) {
+      if (typeof Telegram !== 'undefined'
+          && Telegram.WebApp
+          && Telegram.WebApp.initDataUnsafe
+          && Telegram.WebApp.initDataUnsafe.user) {
         tgUserId = Telegram.WebApp.initDataUnsafe.user.id;
       }
       if (!tgUserId) {
@@ -685,7 +654,7 @@
           }
           if (data.mirrors && Array.isArray(data.mirrors)) {
             mirrorListUL.innerHTML = '';
-            data.mirrors.forEach(mirror => {
+            data.mirrors.forEach((mirror, i) => {
               const li = document.createElement('li');
               li.textContent = mirror.bot_link;
               const checkSpan = document.createElement('span');
@@ -696,7 +665,7 @@
                 mirrorListUL.querySelectorAll('li').forEach(li2 => li2.classList.remove('active'));
                 li.classList.add('active');
                 mirrorDropdownMenu.classList.remove('open');
-                mirrorDropdownBtn.innerHTML = `<div class="arrow-shape"></div><span style="margin-left:5px;">Дублер</span>`;
+                mirrorDropdownBtn.innerHTML = `<span class="arrow-shape"></span>Дублер ${i + 1}`;
                 selectedBotId = mirror.bot_id;
                 fetchAndDrawUsersChart();
                 fetchAndDrawMessagesChart();
@@ -712,16 +681,18 @@
           console.error('Error:', err);
         });
     }
-
     function getBaseLayout() {
       return {
-        margin: { l: 40, r: 20, t: 0, b: 30 },
+        margin: { l: 50, r: 30, t: 50, b: 40 },
+        separators: ". ",
         paper_bgcolor: "#19212A",
         plot_bgcolor: "#19212A",
         font: { color: "#bababa", family: "'Euclid Circular A', sans-serif" },
         showlegend: false,
+        hovermode: "x unified",
         dragmode: false,
         xaxis: {
+          domain: [0, 1],
           tickfont: { color: "#bababa" },
           showline: false,
           showgrid: false,
@@ -734,7 +705,8 @@
           showgrid: true,
           gridcolor: "#3a3a3a",
           zeroline: false,
-          showspikes: false
+          showspikes: false,
+          automargin: true
         },
         hoverlabel: {
           bgcolor: "rgba(40,46,54,1)",
@@ -743,13 +715,6 @@
         }
       };
     }
-
-    function formatHoverValue(val) {
-      const num = Number(val) || 0;
-      return formatTwoDecimals(num);
-    }
-
-    /* ========== Графік користувачів ========== */
     function fetchAndDrawUsersChart() {
       if (!selectedBotId) return;
       const placeholder = document.getElementById('usersChartPlaceholder');
@@ -768,73 +733,71 @@
           placeholder.textContent = 'Error fetching user stats';
         });
     }
-
     function drawUsersChart(usersData) {
       const placeholderId = 'usersChartPlaceholder';
       if (!usersData.users) {
         document.getElementById(placeholderId).textContent = 'Дані недоступні';
         return;
       }
-      let dataArray = usersData.users.slice();
+      let dataArray = [...usersData.users];
       if (dataArray.length && dataArray[0].hour !== undefined && userInterval === 'day') {
         dataArray.sort((a, b) => new Date(a.hour) - new Date(b.hour));
       } else if (dataArray.length && dataArray[0].date) {
         dataArray.sort((a, b) => new Date(a.date) - new Date(b.date));
       }
-      const xArray = [];
-      const yLine = [];
-      let lineColor = "rgba(0,74,163,1)";
-      let hoverFontColor = "rgba(0,74,163,1)";
       let metricName = "Загально";
+      let lineColor = "rgba(0,74,163,1)";
+      if (userType === "active") {
+        metricName = "Живих";
+        lineColor = "rgba(122,194,96,1)";
+      } else if (userType === "inactive") {
+        metricName = "Неактивних";
+        lineColor = "rgba(208,93,91,1)";
+      }
+      const xArray = [];
+      const yArray = [];
       dataArray.forEach(item => {
         const xVal = item.hour || item.date || "";
-        xArray.push(xVal);
         let val;
         if (userType === "active") {
           val = item.active;
-          lineColor = "rgba(122,194,96,1)";
-          hoverFontColor = "rgba(122,194,96,1)";
-          metricName = "Живих";
         } else if (userType === "inactive") {
           val = item.inactive;
-          lineColor = "rgba(208,93,91,1)";
-          hoverFontColor = "rgba(208,93,91,1)";
-          metricName = "Неактивних";
         } else {
           val = item.active + item.inactive;
         }
-        yLine.push(val);
+        xArray.push(xVal);
+        yArray.push(val);
       });
       const trace = {
         x: xArray,
-        y: yLine,
+        y: yArray,
         type: "scatter",
         mode: "lines",
         line: { color: lineColor },
-        customdata: yLine.map(val => formatNoDecimalsWithSpaces(val)),
-        hovertemplate: `<span style='color:${hoverFontColor}'>${metricName}</span>: <span style='color:#fff'>%{customdata}</span><extra></extra>`,
-        hoverlabel: { font: { color: hoverFontColor } }
+        name: metricName,
+        hovertemplate: metricName + ": %{y:,.0f}<extra></extra>"
       };
       const layout = getBaseLayout();
-      layout.hovermode = "closest";
       if (userInterval === 'day') {
         layout.xaxis.type = "date";
         layout.xaxis.dtick = 7200000;
         layout.xaxis.tickformat = "%H";
+        layout.xaxis.hoverformat = "%H:00";
       } else if (userInterval === 'week') {
         const tickVals = xArray;
         const tickText = xArray.map(dt => formatDateUk(dt));
         layout.xaxis.type = "date";
         layout.xaxis.tickvals = tickVals;
         layout.xaxis.ticktext = tickText;
+        layout.xaxis.hoverformat = "%d %b";
       }
       Plotly.newPlot(placeholderId, [trace], layout, {
         displayModeBar: false,
-        responsive: true
+        responsive: true,
+        locale: "uk-custom"
       });
     }
-
-    /* ========== Графік повідомлень ========== */
     function fetchAndDrawMessagesChart() {
       if (!selectedBotId) return;
       const placeholder = document.getElementById('messagesChartPlaceholder');
@@ -853,140 +816,102 @@
           placeholder.textContent = 'Error fetching messages stats';
         });
     }
-
     function drawMessagesChart(messagesData) {
       const placeholderId = 'messagesChartPlaceholder';
       if (!messagesData.messages) {
         document.getElementById(placeholderId).textContent = 'Дані недоступні';
         return;
       }
-      let dataArray = messagesData.messages.slice();
+      let dataArray = [...messagesData.messages];
       if (dataArray.length && dataArray[0].hour !== undefined && messageInterval === 'day') {
         dataArray.sort((a, b) => new Date(a.hour) - new Date(b.hour));
       } else if (dataArray.length && dataArray[0].date) {
         dataArray.sort((a, b) => new Date(a.date) - new Date(b.date));
       }
       const layout = getBaseLayout();
-      layout.hovermode = "x unified";
-      layout.barmode = "stack";
-      layout.xaxis.hoverformat = ' ';
-      layout.hoverlabel = {
-        namelength: 0,
-        bgcolor: "rgba(40,46,54,1)",
-        bordercolor: "transparent",
-        font: { size: 14 }
-      };
-      if (messageInterval === 'day') {
+      if (messageInterval === "day") {
         layout.xaxis.type = "date";
         layout.xaxis.dtick = 7200000;
         layout.xaxis.tickformat = "%H";
-        layout.xaxis.hoverformat = ' ';
-      } else if (messageInterval === 'week') {
+        layout.xaxis.hoverformat = "%H:00";
+      } else if (messageInterval === "week") {
         const tickVals = dataArray.map(d => d.date || d.hour);
         const tickText = tickVals.map(dt => formatDateUk(dt));
         layout.xaxis.type = "date";
         layout.xaxis.tickvals = tickVals;
         layout.xaxis.ticktext = tickText;
-        layout.xaxis.hoverformat = ' ';
+        layout.xaxis.hoverformat = "%d %b";
       }
       if (messageType === "mailings") {
-        const xArray = [];
-        const activeArray = [];
-        const inactiveArray = [];
-        const customData = [];
-        dataArray.forEach(item => {
-          const xVal = item.hour || item.date || "";
-          xArray.push(xVal);
-          const a = item.mailings.active || 0;
-          const i = item.mailings.inactive || 0;
-          const c = item.mailings.count || 0;
-          activeArray.push(a);
-          inactiveArray.push(i);
-          customData.push({
-            active: formatNoDecimalsWithSpaces(a),
-            inactive: formatNoDecimalsWithSpaces(i),
-            count: formatNoDecimalsWithSpaces(c)
-          });
-        });
-        const traceActive = {
-          x: xArray,
-          y: activeArray,
-          type: "bar",
-          marker: { color: "rgba(122,194,96,1)" },
-          hoverinfo: "skip",
-          showlegend: false,
-          name: ''
-        };
+        const xArray = dataArray.map(item => item.hour || item.date);
+        const inactiveArray = dataArray.map(item => item.mailings.inactive || 0);
         const traceInactive = {
           x: xArray,
           y: inactiveArray,
           type: "bar",
-          marker: { color: "rgba(208,93,91,1)" },
-          hoverinfo: "skip",
-          showlegend: false,
-          name: ''
+          name: "Неактивних",
+          hovertemplate: `<span style="color:rgba(208,93,91,1)">Неактивних</span>: %{y:,.0f}<extra></extra>`,
+          marker: { color: "rgba(208,93,91,1)" }
         };
-        const sumY = xArray.map((_, idx) => activeArray[idx] + inactiveArray[idx]);
-        const traceDummy = {
+        const activeArray = dataArray.map(item => item.mailings.active || 0);
+        const traceActive = {
           x: xArray,
-          y: sumY,
-          type: "scatter",
-          mode: "markers",
-          marker: { size: 5, opacity: 0 },
-          customdata: customData,
-          name: '',
-          hovertemplate:
-            "<span style='color:rgba(122,194,96,1)'>Живих</span>: %{customdata.active}<br>" +
-            "<span style='color:rgba(208,93,91,1)'>Неактивних</span>: %{customdata.inactive}<br>" +
-            "<span style='color:#fff'>Розсилок</span>: %{customdata.count}<extra></extra>"
+          y: activeArray,
+          type: "bar",
+          name: "Живих",
+          hovertemplate: `<span style="color:rgba(122,194,96,1)">Живих</span>: %{y:,.0f}<extra></extra>`,
+          marker: { color: "rgba(122,194,96,1)" }
         };
-        Plotly.newPlot(placeholderId, [traceActive, traceInactive, traceDummy], layout, {
+        const countArray = dataArray.map(item => item.mailings.count || 0);
+        const traceCount = {
+          x: xArray,
+          y: new Array(xArray.length).fill(0),
+          type: "bar",
+          name: "Розсилок",
+          customdata: countArray,
+          hovertemplate: `<span style="color:#ffffff">Розсилок</span>: %{customdata:,.0f}<extra></extra>`,
+          marker: { color: "rgba(204,204,204,0)" },
+          showlegend: true
+        };
+        layout.barmode = "stack";
+        Plotly.newPlot(placeholderId, [traceInactive, traceActive, traceCount], layout, {
           displayModeBar: false,
-          responsive: true
+          responsive: true,
+          locale: "uk-custom"
         });
       } else {
-        const xArray = [];
-        const yLine = [];
-        const customData = [];
         let lineColor = "rgba(122,194,96,1)";
-        let hoverFontColor = "rgba(122,194,96,1)";
         let metricName = "Привітання";
         if (messageType === "goodbyes") {
           lineColor = "rgba(208,93,91,1)";
-          hoverFontColor = "rgba(208,93,91,1)";
           metricName = "Прощання";
         }
-        dataArray.forEach(item => {
-          const xVal = item.hour || item.date || "";
-          xArray.push(xVal);
-          const val = (messageType === "greetings") ? (item.greetings || 0) : (item.goodbyes || 0);
-          yLine.push(val);
-          customData.push(formatNoDecimalsWithSpaces(val));
-        });
-        const trace = {
+        const xArray = dataArray.map(item => item.hour || item.date);
+        const yArray = dataArray.map(item =>
+          messageType === "greetings" ? (item.greetings || 0) : (item.goodbyes || 0)
+        );
+        const traceLine = {
           x: xArray,
-          y: yLine,
+          y: yArray,
           type: "scatter",
           mode: "lines",
-          line: { color: lineColor },
-          customdata: customData,
-          name: '',
-          hovertemplate: `<span style='color:${hoverFontColor}'>${metricName}</span>: <span style='color:#fff'>%{customdata}</span><extra></extra>`
+          name: metricName,
+          hovertemplate: `<span style="color:${lineColor}">${metricName}</span>: %{y:,.0f}<extra></extra>`,
+          line: { color: lineColor }
         };
-        Plotly.newPlot(placeholderId, [trace], layout, {
+        Plotly.newPlot(placeholderId, [traceLine], layout, {
           displayModeBar: false,
-          responsive: true
+          responsive: true,
+          locale: "uk-custom"
         });
       }
     }
-
     document.addEventListener('DOMContentLoaded', () => {
       initPage();
       const userIntervalTabs = document.getElementById('userIntervalTabs').querySelectorAll('.tab');
       const userTypeTabs = document.getElementById('userTypeTabs').querySelectorAll('.tab');
       const messageIntervalTabs = document.getElementById('messageIntervalTabs').querySelectorAll('.tab');
       const messageTypeTabs = document.getElementById('messageTypeTabs').querySelectorAll('.tab');
-
       userIntervalTabs.forEach(tab => {
         tab.addEventListener('click', () => {
           userIntervalTabs.forEach(t => t.classList.remove('active'));
@@ -1020,6 +945,12 @@
         });
       });
     });
+    document.addEventListener('selectstart', (e) => {
+      e.preventDefault();
+    }, false);
+    document.addEventListener('copy', (e) => {
+      e.preventDefault();
+    }, false);
   </script>
 </body>
 </html>
