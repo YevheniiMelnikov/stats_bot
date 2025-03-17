@@ -1,0 +1,4 @@
+aiogram==3.18.0
+redis==5.2.1
+loguru==0.7.3
+plotly==6.0.0

@@ -57,6 +57,7 @@
       -moz-user-select: none;
       -ms-user-select: none;
       user-select: none;
+      -webkit-touch-callout: none;
       box-sizing: border-box;
       margin: 0;
       padding: 0;
@@ -144,7 +145,7 @@
       transition: transform 0.3s ease-out;
       z-index: 999;
       overflow-y: auto;
-      padding: 16px 16px 120px;
+      padding: 16px 16px 60px; /* extra bottom padding */
     }
     .bot-dropdown-menu.open {
       transform: translateY(0);
@@ -181,14 +182,16 @@
       display: inline;
     }
     .bot-dropdown-menu .close-btn {
-      margin-top: 12px;
-      margin-bottom: 120px;
-      text-align: center;
-      border: 1px solid #3a3a3a;
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      border: :hover;
       border-radius: 12px;
-      padding: 8px;
+      padding: 8px 16px;
       font-size: 14px;
-      background-color: rgb(33,41,50);
+      background-color: transparent;
+      text-align: center;
     }
     .bot-dropdown-menu .close-btn:hover {
       background-color: #3a3a3a;
@@ -289,7 +292,7 @@
       transition: transform 0.3s ease-out;
       z-index: 998;
       overflow-y: auto;
-      padding: 16px 16px 120px;
+      padding: 16px 16px 60px; /* extra bottom padding */
     }
     .mirror-dropdown-menu.open {
       transform: translateY(0);
@@ -306,6 +309,7 @@
       margin: 0;
       padding: 0;
     }
+    .bot-dropdown-menu li,
     .mirror-dropdown-menu li {
       padding: 10px 8px;
       cursor: pointer;
@@ -313,27 +317,28 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      border-radius: 12px; /* добавляет округлость */
+      background-color: transparent; /* убирает фон по умолчанию */
+      transition: background-color 0.2s ease;
     }
-    .mirror-dropdown-menu li:hover {
-      background-color: #505a65;
-    }
-    .mirror-dropdown-menu li .checkmark {
-      display: none;
-      margin-left: 8px;
-      color: #7AC260;
-    }
-    .mirror-dropdown-menu li.active .checkmark {
-      display: inline;
+
+    .bot-dropdown-menu li:hover,
+    .bot-dropdown-menu li.active,
+    .mirror-dropdown-menu li:hover,
+    .mirror-dropdown-menu li.active {
+      background-color: #3a3a3a; /* задаёт нужный фон при наведении/активном состоянии */
     }
     .mirror-dropdown-menu .close-btn {
-      margin-top: 12px;
-      margin-bottom: 120px;
-      text-align: center;
-      border: 1px solid #3a3a3a;
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      border: :hover;
       border-radius: 12px;
-      padding: 8px;
+      padding: 8px 16px;
       font-size: 14px;
-      background-color: rgb(33,41,50);
+      background-color: transparent;
+      text-align: center;
     }
     .mirror-dropdown-menu .close-btn:hover {
       background-color: #3a3a3a;
@@ -485,7 +490,7 @@
       <div class="mirror-dropdown-menu" id="mirrorDropdownMenu">
         <h3>Оберіть дублера</h3>
         <ul id="mirrorList"></ul>
-        <div class="close-btn" id="mirrorDropdownClose">Скасувати</div>
+        <div class="close-btn" id="mirrorDropdownClose">Загально</div>
       </div>
       <div class="chart-scroll">
         <div class="chart-placeholder" id="usersChartPlaceholder"></div>
@@ -529,19 +534,23 @@
     let userType = "all";
     let messageInterval = "day";
     let messageType = "greetings";
+
     const botDropdownBtn = document.getElementById('botDropdownBtn');
     const botDropdownMenu = document.getElementById('botDropdownMenu');
     const botDropdownClose = document.getElementById('botDropdownClose');
     const botListUL = document.getElementById('botList');
+
     const mirrorDropdownBtn = document.getElementById('mirrorDropdownBtn');
     const mirrorDropdownMenu = document.getElementById('mirrorDropdownMenu');
     const mirrorDropdownClose = document.getElementById('mirrorDropdownClose');
     const mirrorListUL = document.getElementById('mirrorList');
+
     function formatNoDecimalsWithSpaces(num) {
       if (!num) return "0";
       const intVal = Math.round(num);
       return String(intVal).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
     }
+
     function formatTwoDecimals(val) {
       const num = Number(val) || 0;
       if (num >= 1000) {
@@ -550,6 +559,7 @@
         return num.toFixed(2);
       }
     }
+
     function formatDateUk(dateStr) {
       const datePart = dateStr.split('T')[0];
       const [yyyy, mm, dd] = datePart.split('-');
@@ -561,25 +571,30 @@
       }
       return dateStr;
     }
+
     botDropdownBtn.addEventListener('click', (ev) => {
       ev.stopPropagation();
       botDropdownMenu.classList.toggle('open');
       botDropdownBtn.classList.toggle('active');
     });
+
     botDropdownClose.addEventListener('click', () => {
       botDropdownMenu.classList.remove('open');
       botDropdownBtn.classList.remove('active');
     });
+
     document.addEventListener('click', (ev) => {
       if (!botDropdownMenu.contains(ev.target) && ev.target !== botDropdownBtn) {
         botDropdownMenu.classList.remove('open');
         botDropdownBtn.classList.remove('active');
       }
     });
+
     mirrorDropdownBtn.addEventListener('click', (ev) => {
       ev.stopPropagation();
       mirrorDropdownMenu.classList.toggle('open');
     });
+
     mirrorDropdownClose.addEventListener('click', () => {
       mirrorListUL.querySelectorAll('li').forEach(li => li.classList.remove('active'));
       mirrorDropdownBtn.innerHTML = `<span class="arrow-shape"></span>Загально`;
@@ -590,11 +605,13 @@
         fetchAndDrawMessagesChart();
       }
     });
+
     document.addEventListener('click', (ev) => {
       if (!mirrorDropdownMenu.contains(ev.target) && ev.target !== mirrorDropdownBtn) {
         mirrorDropdownMenu.classList.remove('open');
       }
     });
+
     function onBotSelected(botInfo) {
       selectedBotId = botInfo.bot_id;
       if (!botInfo.mirror) {
@@ -611,11 +628,13 @@
       fetchAndDrawUsersChart();
       fetchAndDrawMessagesChart();
     }
+
     function updateBotStats(botInfo) {
       const formatted = botInfo.total_users ? formatNoDecimalsWithSpaces(botInfo.total_users) : "--";
       document.getElementById('botTotalUsers').textContent = formatted;
       document.getElementById('botSubtitle').textContent = `користувачів в ${botInfo.bot_link}`;
     }
+
     function initPage() {
       let tgUserId = null;
       if (typeof Telegram !== 'undefined'
@@ -681,6 +700,7 @@
           console.error('Error:', err);
         });
     }
+
     function getBaseLayout() {
       return {
         margin: { l: 50, r: 30, t: 50, b: 40 },
@@ -715,6 +735,7 @@
         }
       };
     }
+
     function fetchAndDrawUsersChart() {
       if (!selectedBotId) return;
       const placeholder = document.getElementById('usersChartPlaceholder');
@@ -733,6 +754,7 @@
           placeholder.textContent = 'Error fetching user stats';
         });
     }
+
     function drawUsersChart(usersData) {
       const placeholderId = 'usersChartPlaceholder';
       if (!usersData.users) {
@@ -745,6 +767,7 @@
       } else if (dataArray.length && dataArray[0].date) {
         dataArray.sort((a, b) => new Date(a.date) - new Date(b.date));
       }
+
       let metricName = "Загально";
       let lineColor = "rgba(0,74,163,1)";
       if (userType === "active") {
@@ -754,6 +777,7 @@
         metricName = "Неактивних";
         lineColor = "rgba(208,93,91,1)";
       }
+
       const xArray = [];
       const yArray = [];
       dataArray.forEach(item => {
@@ -769,6 +793,7 @@
         xArray.push(xVal);
         yArray.push(val);
       });
+
       const trace = {
         x: xArray,
         y: yArray,
@@ -778,6 +803,7 @@
         name: metricName,
         hovertemplate: metricName + ": %{y:,.0f}<extra></extra>"
       };
+
       const layout = getBaseLayout();
       if (userInterval === 'day') {
         layout.xaxis.type = "date";
@@ -792,12 +818,14 @@
         layout.xaxis.ticktext = tickText;
         layout.xaxis.hoverformat = "%d %b";
       }
+
       Plotly.newPlot(placeholderId, [trace], layout, {
         displayModeBar: false,
         responsive: true,
         locale: "uk-custom"
       });
     }
+
     function fetchAndDrawMessagesChart() {
       if (!selectedBotId) return;
       const placeholder = document.getElementById('messagesChartPlaceholder');
@@ -816,6 +844,7 @@
           placeholder.textContent = 'Error fetching messages stats';
         });
     }
+
     function drawMessagesChart(messagesData) {
       const placeholderId = 'messagesChartPlaceholder';
       if (!messagesData.messages) {
@@ -828,6 +857,7 @@
       } else if (dataArray.length && dataArray[0].date) {
         dataArray.sort((a, b) => new Date(a.date) - new Date(b.date));
       }
+
       const layout = getBaseLayout();
       if (messageInterval === "day") {
         layout.xaxis.type = "date";
@@ -842,6 +872,7 @@
         layout.xaxis.ticktext = tickText;
         layout.xaxis.hoverformat = "%d %b";
       }
+
       if (messageType === "mailings") {
         const xArray = dataArray.map(item => item.hour || item.date);
         const inactiveArray = dataArray.map(item => item.mailings.inactive || 0);
@@ -906,12 +937,14 @@
         });
       }
     }
+
     document.addEventListener('DOMContentLoaded', () => {
       initPage();
       const userIntervalTabs = document.getElementById('userIntervalTabs').querySelectorAll('.tab');
       const userTypeTabs = document.getElementById('userTypeTabs').querySelectorAll('.tab');
       const messageIntervalTabs = document.getElementById('messageIntervalTabs').querySelectorAll('.tab');
       const messageTypeTabs = document.getElementById('messageTypeTabs').querySelectorAll('.tab');
+
       userIntervalTabs.forEach(tab => {
         tab.addEventListener('click', () => {
           userIntervalTabs.forEach(t => t.classList.remove('active'));
@@ -920,6 +953,7 @@
           fetchAndDrawUsersChart();
         });
       });
+
       userTypeTabs.forEach(tab => {
         tab.addEventListener('click', () => {
           userTypeTabs.forEach(t => t.classList.remove('active'));
@@ -928,6 +962,7 @@
           fetchAndDrawUsersChart();
         });
       });
+
       messageIntervalTabs.forEach(tab => {
         tab.addEventListener('click', () => {
           messageIntervalTabs.forEach(t => t.classList.remove('active'));
@@ -936,6 +971,7 @@
           fetchAndDrawMessagesChart();
         });
       });
+
       messageTypeTabs.forEach(tab => {
         tab.addEventListener('click', () => {
           messageTypeTabs.forEach(t => t.classList.remove('active'));
@@ -945,9 +981,11 @@
         });
       });
     });
+
     document.addEventListener('selectstart', (e) => {
       e.preventDefault();
     }, false);
+
     document.addEventListener('copy', (e) => {
       e.preventDefault();
     }, false);
