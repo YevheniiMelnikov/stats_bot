@@ -26,6 +26,7 @@ class APIClient:
         cls, method: str, endpoint: str, params: dict[str, Any] | None = None, headers: dict | None = None
     ) -> dict[str, Any]:
         url = urljoin(Settings.WEBHOOK_HOST, endpoint)
+        print(url)
         session = await cls._get_session()
         logger.debug(f"Making {method} request to {url} with params={params} and headers={headers}")
         try:

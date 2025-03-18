@@ -15,9 +15,32 @@ from test_data.mock_data import (
 )
 
 
-async def webapp_handler(request: web.Request) -> FileResponse:
-    file_path = os.path.join(os.path.dirname(__file__), "..", "web", "index.html")
-    return web.FileResponse(file_path)
+async def webapp_handler(request: web.Request) -> web.FileResponse:
+    user_id = request.query.get("user_id")
+    if not user_id:
+        file_path = os.path.join(os.path.dirname(__file__), "..", "web", "empty.html")
+        return web.FileResponse(file_path)
+
+    try:
+        client: APIClient = request.app["api_client"]
+        result = await client.get_user_homepage(user_id)
+
+        if "error" in result:
+            logger.error(f"get_user_homepage вернул ошибку: {result['error']}")
+            file_path = os.path.join(os.path.dirname(__file__), "..", "web", "empty.html")
+            return web.FileResponse(file_path)
+
+        if not result.get("bot_list"):
+            file_path = os.path.join(os.path.dirname(__file__), "..", "web", "empty.html")
+        else:
+            file_path = os.path.join(os.path.dirname(__file__), "..", "web", "index.html")
+
+        return web.FileResponse(file_path)
+
+    except Exception as e:
+        logger.error(f"Handler error in webapp_handler: {e}")
+        file_path = os.path.join(os.path.dirname(__file__), "..", "web", "empty.html")
+        return web.FileResponse(file_path)
 
 
 async def get_homepage_handler(request: web.Request) -> web.Response:
