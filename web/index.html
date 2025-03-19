@@ -636,69 +636,44 @@
     }
 
     function initPage() {
-      let tgUserId = null;
-      if (typeof Telegram !== 'undefined'
-          && Telegram.WebApp
-          && Telegram.WebApp.initDataUnsafe
-          && Telegram.WebApp.initDataUnsafe.user) {
-        tgUserId = Telegram.WebApp.initDataUnsafe.user.id;
+      const tg = window.Telegram?.WebApp;
+
+      if (
+        !tg ||
+        !tg.initDataUnsafe ||
+        Object.keys(tg.initDataUnsafe).length === 0 ||
+        !tg.initDataUnsafe.user ||
+        !tg.initDataUnsafe.user.id ||
+        tg.initDataUnsafe.user.id.toString() === ''
+      ) {
+        const errorData = {
+          error: "unknown telegram client",
+          details: tg ? tg.initDataUnsafe : null
+        };
+        document.body.innerHTML = `<pre>${JSON.stringify(errorData, null, 2)}</pre>`;
+        return false;
       }
-      if (!tgUserId) {
-        console.warn("No Telegram user ID found; using 205159314 for local test.");
-        tgUserId = 205159314;
-      }
-      fetch(`/home?user_id=${tgUserId}`)
+
+      tg.ready();
+
+      const uid = tg.initDataUnsafe.user.id;
+      const queryId = tg.initDataUnsafe.query_id || '';
+
+      fetch(`/webapp/api/ss?uid=${uid}&qid=${queryId}&cmd=edit`)
         .then(response => response.json())
         .then(data => {
-          if (data.error) {
-            console.error('Error fetching homepage data:', data.error);
-            return;
-          }
-          if (data.bot_list && Array.isArray(data.bot_list)) {
-            botListUL.innerHTML = '';
-            data.bot_list.forEach(botItem => {
-              const li = document.createElement('li');
-              li.textContent = botItem.bot_link;
-              const checkSpan = document.createElement('span');
-              checkSpan.className = 'checkmark';
-              checkSpan.textContent = '✓';
-              li.appendChild(checkSpan);
-              li.addEventListener('click', () => {
-                botListUL.querySelectorAll('li').forEach(li2 => li2.classList.remove('active'));
-                li.classList.add('active');
-                onBotSelected(botItem);
-              });
-              botListUL.appendChild(li);
-            });
-          }
-          if (data.mirrors && Array.isArray(data.mirrors)) {
-            mirrorListUL.innerHTML = '';
-            data.mirrors.forEach((mirror, i) => {
-              const li = document.createElement('li');
-              li.textContent = mirror.bot_link;
-              const checkSpan = document.createElement('span');
-              checkSpan.className = 'checkmark';
-              checkSpan.textContent = '✓';
-              li.appendChild(checkSpan);
-              li.addEventListener('click', () => {
-                mirrorListUL.querySelectorAll('li').forEach(li2 => li2.classList.remove('active'));
-                li.classList.add('active');
-                mirrorDropdownMenu.classList.remove('open');
-                mirrorDropdownBtn.innerHTML = `<span class="arrow-shape"></span>Дублер ${i + 1}`;
-                selectedBotId = mirror.bot_id;
-                fetchAndDrawUsersChart();
-                fetchAndDrawMessagesChart();
-              });
-              mirrorListUL.appendChild(li);
-            });
-          }
-          if (data.default_bot) {
-            onBotSelected(data.default_bot);
+          if (typeof setItems === 'function') {
+            setItems(data.ss);
+          } else {
+            document.body.innerHTML = `<pre>${JSON.stringify(data.ss, null, 2)}</pre>`;
           }
         })
-        .catch(err => {
-          console.error('Error:', err);
+        .catch(error => {
+          console.error("Error fetching data:", error);
+          document.body.innerHTML = `<pre>${JSON.stringify({ error: error.toString() }, null, 2)}</pre>`;
         });
+
+      return true;
     }
 
     function getBaseLayout() {
